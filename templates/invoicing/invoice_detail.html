@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block page_title %}{{ invoice.invoice_number }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h4 class="mb-0">{{ invoice.invoice_number }}
+            <span class="badge
+                {% if invoice.status == 'unpaid' %}bg-secondary
+                {% elif invoice.status == 'partially_paid' %}bg-warning text-dark
+                {% elif invoice.status == 'paid' %}bg-success
+                {% else %}bg-danger{% endif %}">{{ invoice.get_status_display }}</span>
+        </h4>
+        <div class="text-muted">
+            {{ invoice.client.company_name }} &middot; {{ invoice.date }} &middot; Due {{ invoice.due_date|default:"—" }}
+            &middot; from <a href="{% url 'proforma:detail' invoice.proforma_invoice.pk %}">{{ invoice.proforma_invoice.pi_number }}</a>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'invoicing:invoice_pdf' invoice.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3"><div class="card text-center"><div class="card-body">
+        <div class="text-muted small">Grand Total</div><div class="fs-5 fw-bold">{{ invoice.currency.symbol }}{{ invoice.grand_total|floatformat:2 }}</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body">
+        <div class="text-muted small">Paid</div><div class="fs-5 fw-bold text-success">{{ invoice.currency.symbol }}{{ invoice.paid_amount|floatformat:2 }}</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body">
+        <div class="text-muted small">Balance Due</div><div class="fs-5 fw-bold {% if invoice.balance_due > 0 %}text-danger{% endif %}">{{ invoice.currency.symbol }}{{ invoice.balance_due|floatformat:2 }}</div>
+    </div></div></div>
+    <div class="col-md-3"><div class="card text-center"><div class="card-body">
+        <div class="text-muted small">BL / Vessel</div><div class="fw-bold small">{{ invoice.bl_number|default:"—" }} / {{ invoice.vessel|default:"—" }}</div>
+    </div></div></div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead><tr><th>Description</th><th class="text-end">Qty</th><th class="text-end">Unit Price</th>
+                <th class="text-end">VAT %</th><th class="text-end">VAT Amt</th><th class="text-end">Total</th></tr></thead>
+            <tbody>
+            {% for line in items %}
+                <tr>
+                    <td>{{ line.description }}</td>
+                    <td class="text-end">{{ line.quantity }}</td>
+                    <td class="text-end">{{ line.unit_price|floatformat:2 }}</td>
+                    <td class="text-end">{{ line.vat_percentage }}</td>
+                    <td class="text-end">{{ line.vat_amount|floatformat:2 }}</td>
+                    <td class="text-end">{{ line.total_amount|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card"><div class="card-body">
+            <h6 class="card-title text-muted">Payments</h6>
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Date</th><th>Method</th><th>Reference</th><th class="text-end">Amount</th><th></th></tr></thead>
+                <tbody>
+                {% for p in payments %}
+                    <tr>
+                        <td>{{ p.payment_date }}</td>
+                        <td>{{ p.get_payment_method_display }}</td>
+                        <td>{{ p.reference_number|default:"—" }}</td>
+                        <td class="text-end">{{ invoice.currency.symbol }}{{ p.amount|floatformat:2 }}</td>
+                        <td class="text-end">
+                            {% if p.receipt %}<a href="{% url 'invoicing:receipt_pdf' p.receipt.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary">{{ p.receipt.receipt_number }}</a>{% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted py-3">No payments recorded yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+    <div class="col-md-5">
+        {% if invoice.balance_due > 0 and perms.invoicing.add_payment %}
+        <div class="card"><div class="card-body">
+            <h6 class="card-title text-muted">Record Payment</h6>
+            <form method="post" action="{% url 'invoicing:add_payment' invoice.pk %}">
+                {% csrf_token %}
+                <div class="mb-2"><label class="form-label">Payment Date</label>{{ payment_form.payment_date }}</div>
+                <div class="mb-2"><label class="form-label">Amount (max {{ invoice.currency.symbol }}{{ invoice.balance_due|floatformat:2 }})</label>{{ payment_form.amount }}</div>
+                <div class="mb-2"><label class="form-label">Method</label>{{ payment_form.payment_method }}</div>
+                <div class="mb-2"><label class="form-label">Reference Number</label>{{ payment_form.reference_number }}</div>
+                <div class="mb-2"><label class="form-label">Bank / Account</label>{{ payment_form.bank_account }}</div>
+                <div class="mb-2"><label class="form-label">Notes</label>{{ payment_form.notes }}</div>
+                <button type="submit" class="btn btn-success w-100">Record Payment</button>
+            </form>
+        </div></div>
+        {% elif invoice.is_fully_paid %}
+        <div class="alert alert-success">This invoice has been paid in full.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

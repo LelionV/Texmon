@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block page_title %}Proforma Invoices{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="get">
+        <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Search number or client..." style="width:220px;">
+        <select name="status" class="form-select form-select-sm" style="width:180px;">
+            <option value="">All statuses</option>
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-sm btn-outline-secondary" type="submit">Filter</button>
+    </form>
+    <a href="{% url 'quotations:list' %}?status=approved" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-arrow-left-circle me-1"></i>Convert an Approved Quotation
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr>
+                <th>PI Number</th><th>Quotation</th><th>Client</th><th>Date</th>
+                <th>BL Number</th><th class="text-end">Grand Total</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for pi in proformas %}
+                <tr>
+                    <td><a href="{% url 'proforma:detail' pi.pk %}">{{ pi.pi_number }}</a></td>
+                    <td><a href="{% url 'quotations:detail' pi.quotation.pk %}">{{ pi.quotation.quotation_number }}</a></td>
+                    <td>{{ pi.client.company_name }}</td>
+                    <td>{{ pi.date }}</td>
+                    <td>{{ pi.bl_number|default:"—" }}</td>
+                    <td class="text-end">{{ pi.currency.symbol }}{{ pi.grand_total|floatformat:2 }}</td>
+                    <td>
+                        <span class="badge
+                            {% if pi.status == 'draft' %}bg-secondary
+                            {% elif pi.status == 'submitted' %}bg-warning text-dark
+                            {% elif pi.status == 'approved' %}bg-success
+                            {% elif pi.status == 'converted' %}bg-primary
+                            {% else %}bg-danger{% endif %}">{{ pi.get_status_display }}</span>
+                    </td>
+                    <td class="text-end"><a href="{% url 'proforma:detail' pi.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No proforma invoices found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% if is_paginated %}
+<nav class="mt-3"><ul class="pagination">
+    {% for i in paginator.page_range %}
+    <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+        <a class="page-link" href="?page={{ i }}{% if current_status %}&status={{ current_status }}{% endif %}{% if q %}&q={{ q }}{% endif %}">{{ i }}</a>
+    </li>
+    {% endfor %}
+</ul></nav>
+{% endif %}
+{% endblock %}

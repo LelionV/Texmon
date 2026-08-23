@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block page_title %}Usage — {{ document.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="text-muted">Reference Document</div>
+        <h5 class="mb-0">{{ document.name }}</h5>
+        <a href="{{ document.file.url }}" target="_blank" class="small"><i class="bi bi-paperclip me-1"></i>Open file</a>
+    </div>
+    <a href="{% url 'masters:list' 'reference-documents' %}" class="btn btn-outline-secondary btn-sm">Back to Reference Documents</a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead><tr>
+                <th>Quotation</th><th>Status</th>
+                <th>Proforma Invoice</th><th>Status</th>
+                <th>Invoice</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+            {% for chain in chains %}
+                <tr>
+                    <td><a href="{% url 'quotations:detail' chain.quotation.pk %}">{{ chain.quotation.quotation_number }}</a>
+                        <div class="text-muted small">{{ chain.quotation.client.company_name }}</div></td>
+                    <td><span class="badge bg-secondary">{{ chain.quotation.get_status_display }}</span></td>
+                    <td>{% if chain.proforma %}<a href="{% url 'proforma:detail' chain.proforma.pk %}">{{ chain.proforma.pi_number }}</a>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td>{% if chain.proforma %}<span class="badge bg-secondary">{{ chain.proforma.get_status_display }}</span>{% endif %}</td>
+                    <td>{% if chain.invoice %}<a href="{% url 'invoicing:invoice_detail' chain.invoice.pk %}">{{ chain.invoice.invoice_number }}</a>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td>{% if chain.invoice %}<span class="badge bg-secondary">{{ chain.invoice.get_status_display }}</span>{% endif %}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4">This file isn't linked to any quotations yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

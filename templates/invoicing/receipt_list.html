@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block page_title %}Receipts{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Receipt #</th><th>Invoice</th><th>Client</th><th>Date</th><th class="text-end">Amount</th><th></th></tr></thead>
+            <tbody>
+            {% for r in receipts %}
+                <tr>
+                    <td>{{ r.receipt_number }}</td>
+                    <td><a href="{% url 'invoicing:invoice_detail' r.invoice.pk %}">{{ r.invoice.invoice_number }}</a></td>
+                    <td>{{ r.invoice.client.company_name }}</td>
+                    <td>{{ r.date }}</td>
+                    <td class="text-end">{{ r.invoice.currency.symbol }}{{ r.amount|floatformat:2 }}</td>
+                    <td class="text-end"><a href="{% url 'invoicing:receipt_pdf' r.pk %}" target="_blank" class="btn btn-sm btn-outline-secondary">PDF</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No receipts yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

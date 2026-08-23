@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block page_title %}Quotations{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <form class="d-flex gap-2" method="get">
+        <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Search number or client..." style="width:220px;">
+        <select name="status" class="form-select form-select-sm" style="width:160px;">
+            <option value="">All statuses</option>
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-sm btn-outline-secondary" type="submit">Filter</button>
+    </form>
+    {% if perms.quotations.add_quotation %}
+    <a href="{% url 'quotations:create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>New Quotation</a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr>
+                <th>Number</th><th>Client</th><th>Date</th><th>Sales Rep</th>
+                <th class="text-end">Grand Total</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for q in quotations %}
+                <tr>
+                    <td><a href="{% url 'quotations:detail' q.pk %}">{{ q.quotation_number }}</a></td>
+                    <td>{{ q.client.company_name }}</td>
+                    <td>{{ q.date }}</td>
+                    <td>{{ q.sales_representative|default:"—" }}</td>
+                    <td class="text-end">{{ q.currency.symbol }}{{ q.grand_total|floatformat:2 }}</td>
+                    <td>
+                        <span class="badge
+                            {% if q.status == 'draft' %}bg-secondary
+                            {% elif q.status == 'submitted' %}bg-warning text-dark
+                            {% elif q.status == 'approved' %}bg-success
+                            {% elif q.status == 'converted' %}bg-primary
+                            {% else %}bg-danger{% endif %}">{{ q.get_status_display }}</span>
+                    </td>
+                    <td class="text-end"><a href="{% url 'quotations:detail' q.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No quotations found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav class="mt-3"><ul class="pagination">
+    {% for i in paginator.page_range %}
+    <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+        <a class="page-link" href="?page={{ i }}{% if current_status %}&status={{ current_status }}{% endif %}{% if q %}&q={{ q }}{% endif %}">{{ i }}</a>
+    </li>
+    {% endfor %}
+</ul></nav>
+{% endif %}
+{% endblock %}

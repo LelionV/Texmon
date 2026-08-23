@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block page_title %}Delete {{ verbose_name }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:520px;">
+    <div class="card-body">
+        <h6 class="card-title text-danger">Confirm Delete</h6>
+        <p>Are you sure you want to delete <strong>{{ object }}</strong>? This cannot be undone.</p>
+        <p class="text-muted small">If this {{ verbose_name|lower }} is referenced by any quotations, invoices, or
+            other records, the deletion will be blocked automatically to protect that history --
+            consider marking it inactive instead.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Reason for deletion</label>
+                <input type="text" name="change_reason" class="form-control" placeholder="Optional, recorded in the audit trail">
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">Delete</button>
+                <a href="{% url 'masters:list' slug %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

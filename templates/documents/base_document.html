@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% block doc_title %}Document{% endblock %} - {{ document_number }}</title>
+    <style>
+        @page { 
+            size: A4; 
+            margin: 1.2cm 1.2cm 1.5cm 1.5cm; 
+            {% if company_info.watermark %}
+            background-image: url('{{ company_info.watermark.path }}');
+            {% endif %}
+        }
+        
+        body { 
+            font-family: Helvetica, Arial, sans-serif; 
+            color: #222222; 
+            font-size: 9.5px; 
+            line-height: 1.15;
+            margin: 0;
+            padding: 0;
+        }
+        
+        table { border-collapse: collapse; width: 100%; }
+
+        /* Header Layout */
+        .doc-header-table { width: 100%; margin-bottom: 2px; }
+        .doc-header-table td { vertical-align: bottom; padding: 0; }
+        
+        .logo-cell { width: 65px; }
+        .logo-cell img { width: 58px; height: auto; }
+        
+        .company-name { 
+            font-size: 16px; 
+            font-weight: bold; 
+            color: #000000; 
+            margin: 0; 
+            letter-spacing: 0.01em;
+            text-transform: uppercase;
+        }
+        .company-name .highlight-green { color: #008744; }
+        .company-name .highlight-red { color: #d32f2f; }
+        
+        .company-tagline { 
+            font-style: italic; 
+            font-size: 8.5px; 
+            color: #2f4a8c; 
+            margin: 1px 0 0 0; 
+            font-weight: 500;
+        }
+        
+        .doc-type-cell { text-align: right; vertical-align: top; }
+        .doc-type-cell h1 { font-size: 18px; margin: 0; color: #008744; text-transform: uppercase; }
+        .doc-meta { font-size: 8.5px; margin-top: 2px; line-height: 1.3; }
+        .doc-meta .doc-number { color: #d32f2f; font-weight: bold; }
+
+        /* Top Tri-Color Accent Line */
+        .accent-bar-table { width: 100%; margin-top: 4px; margin-bottom: 10px; }
+        .accent-bar-table td { height: 2px; padding: 0; font-size: 1px; line-height: 1px; }
+        .accent-bar-table td.seg-red { background: #d32f2f; }
+        .accent-bar-table td.seg-green { background: #008744; }
+        .accent-bar-table td.seg-blue { background: #2f4a8c; }
+
+        /* BILL TO Box with Left Accent Border */
+        .attention-box-table { 
+            width: 50%; 
+            background: #f7f9fc; 
+            margin-bottom: 12px; 
+            border-left: 3px solid #112d4e;
+        }
+        .attention-box-table td { padding: 6px 10px; line-height: 1.2; }
+        .attention-box-table .label { font-size: 8px; text-transform: uppercase; color: #555; font-weight: bold; margin-bottom: 3px; }
+        .attention-box-table .name { font-weight: bold; font-size: 9.5px; color: #000; }
+        .attention-box-table .address-text { font-size: 9px; color: #333; margin-top: 2px; }
+
+        /* Content Tables - Dark Blue Header Style */
+        table.doc-table { width: 100%; margin-bottom: 10px; }
+        table.doc-table th { 
+            text-align: left; 
+            font-size: 8px; 
+            font-weight: bold;
+            text-transform: uppercase; 
+            color: #ffffff;
+            background-color: #0d2b5c;
+            padding: 5px 6px; 
+            border: none;
+        }
+        table.doc-table td { 
+            padding: 5px 6px; 
+            border-bottom: 1px solid #eef0f3; 
+            font-size: 9px; 
+            color: #222;
+        }
+        table.doc-table td.num, table.doc-table th.num { text-align: right; }
+
+        /* Totals Block */
+        table.totals-table { width: 40%; margin-left: 60%; margin-top: 6px; margin-bottom: 12px; }
+        table.totals-table td { padding: 3px 4px; font-size: 9px; line-height: 1.2; }
+        table.totals-table td.label { text-align: left; color: #444; }
+        table.totals-table td.value { text-align: right; color: #000; }
+        table.totals-table tr.grand td { 
+            font-weight: bold; 
+            color: #000; 
+            border-top: 1px solid #333; 
+            border-bottom: 1px solid #333;
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+
+        /* Signatures Section */
+        table.signatures-table { width: 100%; margin-top: 25px; }
+        table.signatures-table td { 
+            width: 35%; 
+            text-align: center; 
+            border-top: 1px solid #555;
+            padding-top: 3px; 
+            font-size: 8.5px; 
+            line-height: 1.2;
+        }
+        table.signatures-table td.spacer { border-top: none; width: 30%; }
+
+        /* Footer Section */
+        .doc-footer-table { 
+            width: 100%; 
+            margin-top: 15px; 
+            border-top: 1px solid #008744; 
+        }
+        .doc-footer-table td { 
+            text-align: center; 
+            font-size: 8px; 
+            color: #222222; 
+            padding-top: 4px; 
+            line-height: 1.3; 
+        }
+        .doc-footer-table .footer-line { font-weight: bold; }
+
+        .page-line {
+            text-align: center; 
+            font-size: 8px; 
+            color: #888; 
+            margin-top: 2px;
+        }
+    </style>
+    {% block extra_style %}{% endblock %}
+</head>
+<body>
+
+<!-- Header Section -->
+<table class="doc-header-table">
+    <tr>
+        <td>
+            <table>
+                <tr>
+                    {% if company_info.logo %}
+                    <td class="logo-cell"><img src="{{ company_info.logo.path }}" alt="logo"></td>
+                    {% endif %}
+                    <td style="padding-left: 6px;">
+                        <p class="company-name">
+                            <span class="highlight-red">TEX</span><span class="highlight-green">MON LOGISTICS LIMITED</span>
+                        </p>
+                        <p class="company-tagline">
+                            {{ company_info.tagline|default:"Professionally Delivering Excellence" }}
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td class="doc-type-cell">
+            <h1>{% block doc_type_label %}INVOICE{% endblock %}</h1>
+            <div class="doc-meta">
+                <div>Doc No: <span class="doc-number">#{{ document_number }}</span></div>
+                {% if reference_number %}<div>Ref No: {{ reference_number }}</div>{% endif %}
+                <div>Date: {{ document_date|date:"d/m/Y" }}</div>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<!-- Red / Green / Blue Accent Bar -->
+<table class="accent-bar-table" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="seg-red" width="30%">&nbsp;</td>
+        <td class="seg-green" width="40%">&nbsp;</td>
+        <td class="seg-blue" width="30%">&nbsp;</td>
+    </tr>
+</table>
+
+{% block attention_box %}
+{% if customer %}
+<table class="attention-box-table">
+    <tr>
+        <td>
+            <div class="label">BILL TO</div>
+            <div class="name">{{ customer.company_name|default:customer.contact_person }}</div>
+            <div class="address-text">{{ customer.billing_address|default:customer.address|linebreaksbr }}</div>
+        </td>
+    </tr>
+</table>
+{% endif %}
+{% endblock %}
+
+{% block document_content %}
+<!-- Primary Commodity Table -->
+<table class="doc-table">
+    <thead>
+        <tr>
+            <th>COMMODITY</th>
+            <th>POL</th>
+            <th>POD</th>
+            <th>FCL</th>
+            <th>FPOD</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in commodity_items %}
+        <tr>
+            <td><strong>{{ item.commodity }}</strong></td>
+            <td>{{ item.pol|default:"&nbsp;" }}</td>
+            <td>{{ item.pod|default:"&nbsp;" }}</td>
+            <td>{{ item.fcl|default:"&nbsp;" }}</td>
+            <td>{{ item.fpod|default:"&nbsp;" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td><strong>Hilux Double Cab</strong></td>
+            <td>Mombasa</td>
+            <td>Kampala</td>
+            <td>1 Unit</td>
+            <td>Kampala</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Line Items Table -->
+<table class="doc-table">
+    <thead>
+        <tr>
+            <th>DESCRIPTION</th>
+            <th class="num">QUANTITY</th>
+            <th class="num">UNIT PRICE</th>
+            <th class="num">VAT (16%)</th>
+            <th class="num">TOTAL AMOUNT</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for line in line_items %}
+        <tr>
+            <td><strong>{{ line.description }}</strong></td>
+            <td class="num">{{ line.quantity|floatformat:2 }}</td>
+            <td class="num">{{ line.unit_price|floatformat:2 }}</td>
+            <td class="num">{{ line.vat|floatformat:2 }}</td>
+            <td class="num">{{ line.total_amount|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td><strong>CLEARANCE</strong></td>
+            <td class="num">1.00</td>
+            <td class="num">52,000.00</td>
+            <td class="num">8,320.00</td>
+            <td class="num">60,320.00</td>
+        </tr>
+        <tr>
+            <td><strong>Freight Cost</strong></td>
+            <td class="num">1.00</td>
+            <td class="num">10,000.00</td>
+            <td class="num">1,600.00</td>
+            <td class="num">11,600.00</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block totals_block %}
+<table class="totals-table">
+    <tr>
+        <td class="label">Subtotal Amount:</td>
+        <td class="value">{{ subtotal|default:"62,000.00" }}</td>
+    </tr>
+    <tr>
+        <td class="label">VAT Total (16.00%):</td>
+        <td class="value">{{ vat_total|default:"9,920.00" }}</td>
+    </tr>
+    <tr class="grand">
+        <td class="label">Grand Total ({{ currency_code|default:"KES" }}):</td>
+        <td class="value">{{ grand_total|default:"71,920.00" }}</td>
+    </tr>
+</table>
+{% endblock %}
+
+{% block signatures_block %}
+<table class="signatures-table">
+    <tr>
+        <td>{{ prepared_by|default:"" }}<br>Prepared By</td>
+        <td class="spacer">&nbsp;</td>
+        <td>{{ approved_by|default:"" }}<br>Approved By</td>
+    </tr>
+</table>
+{% endblock %}
+
+<!-- Footer Section -->
+<table class="doc-footer-table">
+    <tr>
+        <td>
+            <span class="footer-line">
+                Mombasa: Fidel Odinga Rd Off Nyali Links Road, P.O Box 42627 - 80100 Mombasa-Kenya
+            </span><br>
+            <span class="footer-line">
+                (+254) 795 616 827 | (+254) 795 616 273
+            </span><br>
+            <span class="footer-line">
+                enquiries@texmonlogistics.co.ke | www.texmonlogistics.co.ke
+            </span>
+        </td>
+    </tr>
+</table>
+
+<div class="page-line">
+    Page <pdf:pagenumber /> of <pdf:pagecount />
+</div>
+
+</body>
+</html>

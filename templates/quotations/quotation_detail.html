@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block page_title %}{{ quotation.quotation_number }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h4 class="mb-0">{{ quotation.quotation_number }}
+            <span class="badge
+                {% if quotation.status == 'draft' %}bg-secondary
+                {% elif quotation.status == 'submitted' %}bg-warning text-dark
+                {% elif quotation.status == 'approved' %}bg-success
+                {% elif quotation.status == 'converted' %}bg-primary
+                {% else %}bg-danger{% endif %}">{{ quotation.get_status_display }}</span>
+        </h4>
+        <div class="text-muted">{{ quotation.client.company_name }} &middot; {{ quotation.date }}</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'quotations:pdf' quotation.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+        {% if quotation.is_editable and perms.quotations.change_quotation %}
+            <a href="{% url 'quotations:update' quotation.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+        {% endif %}
+        {% if quotation.status == 'draft' and perms.quotations.submit_quotation %}
+            <form method="post" action="{% url 'quotations:submit' quotation.pk %}">{% csrf_token %}
+                <button class="btn btn-warning btn-sm">Submit for Approval</button></form>
+        {% endif %}
+        {% if quotation.status == 'submitted' and perms.quotations.approve_quotation %}
+            <form method="post" action="{% url 'quotations:approve' quotation.pk %}">{% csrf_token %}
+                <button class="btn btn-success btn-sm">Approve</button></form>
+            <form method="post" action="{% url 'quotations:reject' quotation.pk %}">{% csrf_token %}
+                <button class="btn btn-outline-danger btn-sm">Reject</button></form>
+        {% endif %}
+        {% if quotation.status == 'submitted' or quotation.status == 'rejected' %}
+            {% if perms.quotations.change_quotation %}
+            <form method="post" action="{% url 'quotations:revert' quotation.pk %}">{% csrf_token %}
+                <button class="btn btn-outline-secondary btn-sm">Revert to Draft</button></form>
+            {% endif %}
+        {% endif %}
+        {% if quotation.status == 'approved' and perms.proforma.add_proformainvoice %}
+            {% if quotation.proforma %}
+                <a href="{% url 'proforma:detail' quotation.proforma.pk %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-arrow-right-circle me-1"></i>View Proforma {{ quotation.proforma.pi_number }}</a>
+            {% else %}
+                <form method="post" action="{% url 'proforma:create_from_quotation' quotation.pk %}"
+                      onsubmit="return confirm('Convert {{ quotation.quotation_number }} to a Proforma Invoice? The quotation will be locked afterwards.');">
+                    {% csrf_token %}
+                    <button class="btn btn-primary btn-sm"><i class="bi bi-arrow-right-circle me-1"></i>Convert to Proforma Invoice</button>
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="card h-100"><div class="card-body">
+            <h6 class="card-title text-muted">Shipment</h6>
+            <dl class="row mb-0 small">
+                <dt class="col-5">Commodity</dt><dd class="col-7">{{ quotation.commodity|default:"—" }}</dd>
+                <dt class="col-5">Origin (POL)</dt><dd class="col-7">{{ quotation.origin_port|default:"—" }}</dd>
+                <dt class="col-5">Destination (POD)</dt><dd class="col-7">{{ quotation.destination_port|default:"—" }}</dd>
+                <dt class="col-5">FPOD</dt><dd class="col-7">{{ quotation.final_destination|default:"—" }}</dd>
+                <dt class="col-5">Qty</dt><dd class="col-7">{{ quotation.commodity_quantity }} {{ quotation.commodity_unit }}</dd>
+            </dl>
+        </div></div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100"><div class="card-body">
+            <h6 class="card-title text-muted">Commercial Terms</h6>
+            <dl class="row mb-0 small">
+                <dt class="col-5">Currency</dt><dd class="col-7">{{ quotation.currency }}</dd>
+                <dt class="col-5">Payment Terms</dt><dd class="col-7">{{ quotation.payment_terms }}</dd>
+                <dt class="col-5">Sales Rep</dt><dd class="col-7">{{ quotation.sales_representative|default:"—" }}</dd>
+                <dt class="col-5">Valid Until</dt><dd class="col-7">{{ quotation.valid_until|default:"—" }}</dd>
+                <dt class="col-5">Reference Document</dt><dd class="col-7">
+                    {% if quotation.reference_document %}
+                        <a href="{{ quotation.reference_document.file.url }}" target="_blank">{{ quotation.reference_document.name }}</a>
+                    {% else %}—{% endif %}
+                </dd>
+                <dt class="col-5">Shipment Type</dt><dd class="col-7">{% if quotation.shipment_type %}<span class="badge bg-info text-dark">{{ quotation.get_shipment_type_display }}</span>{% else %}—{% endif %}</dd>
+            </dl>
+        </div></div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead><tr><th>Description</th><th class="text-end">Qty</th><th class="text-end">Unit Price</th>
+                <th class="text-end">VAT %</th><th class="text-end">VAT Amt</th><th class="text-end">Total</th></tr></thead>
+            <tbody>
+            {% for line in items %}
+                <tr>
+                    <td>{% if line.item.code %}<span class="text-muted small">[{{ line.item.code }}]</span> {% endif %}{{ line.description }}</td>
+                    <td class="text-end">{{ line.quantity }}</td>
+                    <td class="text-end">{{ line.unit_price|floatformat:2 }}</td>
+                    <td class="text-end">{{ line.vat_percentage }}</td>
+                    <td class="text-end">{{ line.vat_amount|floatformat:2 }}</td>
+                    <td class="text-end">{{ line.total_amount|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row justify-content-end">
+    <div class="col-md-4">
+        <div class="card"><div class="card-body">
+            <div class="d-flex justify-content-between"><span>Subtotal</span><span>{{ quotation.currency.symbol }}{{ quotation.subtotal|floatformat:2 }}</span></div>
+            <div class="d-flex justify-content-between"><span>VAT</span><span>{{ quotation.currency.symbol }}{{ quotation.vat_total|floatformat:2 }}</span></div>
+            <hr class="my-2">
+            <div class="d-flex justify-content-between fw-bold text-primary"><span>Grand Total</span><span>{{ quotation.currency.symbol }}{{ quotation.grand_total|floatformat:2 }}</span></div>
+        </div></div>
+    </div>
+</div>
+{% endblock %}

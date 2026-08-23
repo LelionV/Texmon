@@ -1,0 +1,22 @@
+{% extends "documents/base_document.html" %}
+{% block doc_type_label %}RECEIPT{% endblock %}
+{% block document_content %}
+<table class="doc-table">
+    <thead><tr><th>Invoice</th><th class="num">Amount Received ({{ currency_symbol }})</th></tr></thead>
+    <tbody>
+        <tr>
+            <td>{{ invoice.invoice_number }}</td>
+            <td class="num">{{ receipt.amount|floatformat:2 }}</td>
+        </tr>
+    </tbody>
+</table>
+<p style="font-size:10.5px; margin-top:10px;">
+    Received with thanks from <strong>{{ invoice.client.company_name }}</strong>
+    against invoice {{ invoice.invoice_number }}.
+</p>
+{% endblock %}
+{% block totals_block %}
+<table class="totals-table">
+    <tr class="grand"><td class="label">Amount Received ({{ currency_symbol }}):</td><td class="value">{{ receipt.amount|floatformat:2 }}</td></tr>
+</table>
+{% endblock %}

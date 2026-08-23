@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block page_title %}{{ receipt.receipt_number }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;">
+    <div class="card-body">
+        <h5>{{ receipt.receipt_number }}</h5>
+        <dl class="row mb-0">
+            <dt class="col-5">Invoice</dt><dd class="col-7"><a href="{% url 'invoicing:invoice_detail' receipt.invoice.pk %}">{{ receipt.invoice.invoice_number }}</a></dd>
+            <dt class="col-5">Client</dt><dd class="col-7">{{ receipt.invoice.client.company_name }}</dd>
+            <dt class="col-5">Date</dt><dd class="col-7">{{ receipt.date }}</dd>
+            <dt class="col-5">Amount</dt><dd class="col-7">{{ receipt.invoice.currency.symbol }}{{ receipt.amount|floatformat:2 }}</dd>
+        </dl>
+        <a href="{% url 'invoicing:receipt_pdf' receipt.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm mt-3"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+<style>
+    .kpi-card { border-radius: 10px; }
+    .kpi-card .kpi-value { font-size: 1.6rem; font-weight: 700; color: #111827; }
+    .kpi-card .kpi-label { font-size: .78rem; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+    .kpi-icon { width: 42px; height: 42px; border-radius: 9px; display:flex; align-items:center; justify-content:center; font-size: 1.2rem; }
+</style>
+
+<h6 class="text-muted mb-3">Welcome back, {{ user.get_full_name|default:user.username }}
+    {% if roles %}&middot; {% for r in roles %}<span class="badge bg-secondary me-1">{{ r }}</span>{% endfor %}{% endif %}
+</h6>
+
+{% if admin_metrics %}
+<div class="mb-4">
+    <h6 class="text-muted text-uppercase small fw-bold mb-3">Company Overview</h6>
+    <div class="row g-3">
+        <div class="col-md-4 col-lg-2">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-icon bg-primary bg-opacity-10 text-primary mb-2"><i class="bi bi-graph-up-arrow"></i></div>
+                <div class="kpi-value">{{ admin_metrics.total_sales|floatformat:0 }}</div>
+                <div class="kpi-label">Total Sales</div>
+            </div></div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-icon bg-danger bg-opacity-10 text-danger mb-2"><i class="bi bi-exclamation-circle"></i></div>
+                <div class="kpi-value">{{ admin_metrics.outstanding_invoices_total|floatformat:0 }}</div>
+                <div class="kpi-label">Outstanding</div>
+            </div></div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-icon bg-success bg-opacity-10 text-success mb-2"><i class="bi bi-cash-coin"></i></div>
+                <div class="kpi-value">{{ admin_metrics.payments_received|floatformat:0 }}</div>
+                <div class="kpi-label">Payments Received</div>
+            </div></div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-icon bg-warning bg-opacity-10 text-warning mb-2"><i class="bi bi-wallet2"></i></div>
+                <div class="kpi-value">{{ admin_metrics.total_expenses|floatformat:0 }}</div>
+                <div class="kpi-label">Expenses</div>
+            </div></div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-icon bg-info bg-opacity-10 text-info mb-2"><i class="bi bi-piggy-bank"></i></div>
+                <div class="kpi-value">{{ admin_metrics.profit_estimate|floatformat:0 }}</div>
+                <div class="kpi-label">Est. Profit</div>
+            </div></div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-icon bg-secondary bg-opacity-10 text-secondary mb-2"><i class="bi bi-people"></i></div>
+                <div class="kpi-value">{{ admin_metrics.customers_count }}</div>
+                <div class="kpi-label">Customers</div>
+            </div></div>
+        </div>
+    </div>
+    {% if admin_metrics.recent_invoices %}
+    <div class="card mt-3">
+        <div class="card-body">
+            <h6 class="card-title">Recent Invoices</h6>
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Invoice</th><th>Client</th><th>Date</th><th class="text-end">Total</th><th>Status</th></tr></thead>
+                <tbody>
+                {% for inv in admin_metrics.recent_invoices %}
+                    <tr>
+                        <td><a href="{% url 'invoicing:invoice_detail' inv.pk %}">{{ inv.invoice_number }}</a></td>
+                        <td>{{ inv.client.company_name }}</td>
+                        <td>{{ inv.date }}</td>
+                        <td class="text-end">{{ inv.currency.symbol }}{{ inv.grand_total|floatformat:2 }}</td>
+                        <td><span class="badge bg-secondary">{{ inv.get_status_display }}</span></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if sales_metrics %}
+<div class="mb-4">
+    <h6 class="text-muted text-uppercase small fw-bold mb-3">Sales</h6>
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value">{{ sales_metrics.my_quotations }}</div>
+                <div class="kpi-label">My Quotations</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value text-warning">{{ sales_metrics.pending_approvals }}</div>
+                <div class="kpi-label">Pending Approval</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value text-primary">{{ sales_metrics.converted_proformas }}</div>
+                <div class="kpi-label">Converted Proformas</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value text-secondary">{{ sales_metrics.draft_quotations }}</div>
+                <div class="kpi-label">Drafts</div>
+            </div></div>
+        </div>
+    </div>
+    <a href="{% url 'quotations:list' %}" class="btn btn-sm btn-outline-primary mt-3">View My Quotations</a>
+</div>
+{% endif %}
+
+{% if finance_metrics %}
+<div class="mb-4">
+    <h6 class="text-muted text-uppercase small fw-bold mb-3">Finance</h6>
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value text-danger">{{ finance_metrics.outstanding_invoices_total|floatformat:2 }}</div>
+                <div class="kpi-label">Outstanding ({{ finance_metrics.outstanding_invoices_count }} invoices)</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value text-success">{{ finance_metrics.payments_this_month|floatformat:2 }}</div>
+                <div class="kpi-label">Payments (30 days)</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value">{{ finance_metrics.supplier_payments_this_month|floatformat:2 }}</div>
+                <div class="kpi-label">Supplier Payments (30 days)</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value">{{ finance_metrics.statements_generated }}</div>
+                <div class="kpi-label">Statements Generated</div>
+            </div></div>
+        </div>
+    </div>
+    <a href="{% url 'invoicing:invoice_list' %}" class="btn btn-sm btn-outline-primary mt-3">View Invoices</a>
+</div>
+{% endif %}
+
+{% if operations_metrics %}
+<div class="mb-4">
+    <h6 class="text-muted text-uppercase small fw-bold mb-3">Operations</h6>
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value">{{ operations_metrics.active_shipments }}</div>
+                <div class="kpi-label">Active Shipments</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value">{{ operations_metrics.ports_count }}</div>
+                <div class="kpi-label">Active Ports</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card h-100"><div class="card-body">
+                <div class="kpi-value">{{ operations_metrics.transporters_count }}</div>
+                <div class="kpi-label">Transport Assignments</div>
+            </div></div>
+        </div>
+    </div>
+    {% if operations_metrics.bl_numbers %}
+    <div class="card mt-3"><div class="card-body">
+        <h6 class="card-title">Active BL Numbers</h6>
+        <ul class="mb-0 small">
+        {% for bl, pi_number in operations_metrics.bl_numbers %}
+            <li>{{ bl }} &mdash; {{ pi_number }}</li>
+        {% endfor %}
+        </ul>
+    </div></div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if viewer_metrics %}
+<div class="alert alert-info">
+    <strong>Welcome, {{ user.get_full_name|default:user.username }}.</strong>
+    Outstanding invoices total {{ viewer_metrics.outstanding_invoices_total|floatformat:2 }} across
+    {{ viewer_metrics.outstanding_invoices_count }} invoice(s).
+</div>
+{% endif %}
+
+{% if not admin_metrics and not sales_metrics and not finance_metrics and not operations_metrics and not viewer_metrics %}
+<div class="alert alert-info">
+    <strong>Welcome, {{ user.get_full_name|default:user.username }}.</strong>
+    No role-specific dashboard widgets are configured for your account yet.
+</div>
+{% endif %}
+{% endblock %}

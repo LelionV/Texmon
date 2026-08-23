@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block page_title %}{% if is_create %}New {{ verbose_name }}{% else %}Edit {{ verbose_name }}{% endif %}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:640px;">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="alert alert-danger py-2">{{ form.non_field_errors }}</div>{% endif %}
+            {% for field in form %}
+                {% if field.name != "change_reason" %}
+                <div class="mb-3">
+                    <label class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+                    {{ field }}
+                    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                    {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            {% if not is_create %}
+            <hr>
+            <div class="mb-3">
+                <label class="form-label">{{ form.change_reason.label }}</label>
+                {{ form.change_reason }}
+                <div class="form-text">{{ form.change_reason.help_text }}</div>
+            </div>
+            {% endif %}
+
+            <div class="d-flex gap-2 mt-2">
+                <button type="submit" class="btn btn-primary">Save {{ verbose_name }}</button>
+                <a href="{% url 'masters:list' slug %}" class="btn btn-outline-secondary">Cancel</a>
+                {% if not is_create %}
+                <a href="{% url 'masters:history' slug object.pk %}" class="btn btn-outline-secondary ms-auto"><i class="bi bi-clock-history me-1"></i>View History</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

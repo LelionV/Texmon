@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block page_title %}Payments{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Date</th><th>Invoice</th><th>Client</th><th>Method</th><th>Reference</th><th class="text-end">Amount</th><th>Receipt</th></tr></thead>
+            <tbody>
+            {% for p in payments %}
+                <tr>
+                    <td>{{ p.payment_date }}</td>
+                    <td><a href="{% url 'invoicing:invoice_detail' p.invoice.pk %}">{{ p.invoice.invoice_number }}</a></td>
+                    <td>{{ p.invoice.client.company_name }}</td>
+                    <td>{{ p.get_payment_method_display }}</td>
+                    <td>{{ p.reference_number|default:"—" }}</td>
+                    <td class="text-end">{{ p.invoice.currency.symbol }}{{ p.amount|floatformat:2 }}</td>
+                    <td>{% if p.receipt %}<a href="{% url 'invoicing:receipt_pdf' p.receipt.pk %}" target="_blank">{{ p.receipt.receipt_number }}</a>{% endif %}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4">No payments recorded yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "documents/base_document.html" %}
+{% block doc_type_label %}PROFORMA INVOICE{% endblock %}
+{% block document_content %}
+<table class="doc-table">
+    <thead><tr>
+        <th>Commodity</th><th>POL</th><th>POD</th><th>FPOD</th><th>Vessel</th><th>BL Number</th>
+    </tr></thead>
+    <tbody>
+        <tr>
+            <td>{{ proforma.commodity|default:"—" }}</td>
+            <td>{{ proforma.origin_port|default:"—" }}</td>
+            <td>{{ proforma.destination_port|default:"—" }}</td>
+            <td>{{ proforma.final_destination|default:"—" }}</td>
+            <td>{{ proforma.vessel|default:"—" }}</td>
+            <td>{{ proforma.bl_number|default:"—" }}</td>
+        </tr>
+    </tbody>
+</table>
+<table class="doc-table">
+    <thead><tr>
+        <th>Description</th><th class="num">Quantity</th><th class="num">Unit Price</th>
+        <th class="num">VAT ({{ currency_symbol }})</th><th class="num">Total Amount ({{ currency_symbol }})</th>
+    </tr></thead>
+    <tbody>
+        {% for line in items %}
+        <tr>
+            <td>{{ line.description }}</td>
+            <td class="num">{{ line.quantity }}</td>
+            <td class="num">{{ line.unit_price|floatformat:2 }}</td>
+            <td class="num">{{ line.vat_amount|floatformat:2 }}</td>
+            <td class="num">{{ line.total_amount|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% if proforma.terms %}
+<p style="font-size:9.5px; color:#555; margin-top:14px;"><strong>Terms:</strong> {{ proforma.terms }}</p>
+{% endif %}
+{% endblock %}

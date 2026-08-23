@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Login - Logistics ERP{% endblock %}
+{% block extra_head %}
+<style>.card form input[type=text], .card form input[type=password] { width:100%; padding:.45rem .75rem; border:1px solid #ced4da; border-radius:.375rem; }</style>
+{% endblock %}
+{% block guest_content %}
+<div class="d-flex align-items-center justify-content-center" style="min-height:100vh; background:#0f3d63;">
+    <div class="card p-4" style="width: 360px;">
+        <div class="text-center mb-3">
+            <i class="bi bi-truck" style="font-size:2rem; color:#0f3d63;"></i>
+            <h5 class="mt-2 mb-0">{{ company_info.name|default:"Logistics ERP" }}</h5>
+            <small class="text-muted">Sign in to continue</small>
+        </div>
+        {% if form.errors %}
+            <div class="alert alert-danger py-2">Invalid username or password.</div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                {{ form.username }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                {{ form.password }}
+            </div>
+            <input type="hidden" name="next" value="{{ next }}">
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

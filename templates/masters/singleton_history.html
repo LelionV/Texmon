@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block page_title %}History — {{ title }}{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead><tr><th>Date</th><th>Action</th><th>By</th><th>Reason</th><th>Changes</th></tr></thead>
+            <tbody>
+            {% for row in rows %}
+                <tr>
+                    <td class="text-nowrap">{{ row.record.history_date|date:"d M Y, H:i" }}</td>
+                    <td>
+                        {% if row.record.history_type == "+" %}<span class="badge bg-success">Created</span>
+                        {% elif row.record.history_type == "~" %}<span class="badge bg-warning text-dark">Updated</span>
+                        {% elif row.record.history_type == "-" %}<span class="badge bg-danger">Deleted</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ row.record.history_user|default:"System" }}</td>
+                    <td>{{ row.record.history_change_reason|default:"—" }}</td>
+                    <td>
+                        {% if row.diff %}
+                            <ul class="mb-0 ps-3 small">
+                            {% for change in row.diff %}
+                                <li><strong>{{ change.field }}</strong>: {{ change.old|default:"—" }} &rarr; {{ change.new|default:"—" }}</li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-4">No history recorded yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

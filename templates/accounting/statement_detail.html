@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block page_title %}{{ statement.statement_number }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h4 class="mb-0">{{ statement.statement_number }}</h4>
+        <div class="text-muted">{{ statement.client.company_name }} &middot; {{ statement.date_from }} &ndash; {{ statement.date_to }}</div>
+    </div>
+    <a href="{% url 'accounting:statement_pdf' statement.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <div class="text-muted small">Opening Balance</div><div class="fs-5 fw-bold">{{ statement.opening_balance|floatformat:2 }}</div>
+    </div></div></div>
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <div class="text-muted small">Closing Balance</div><div class="fs-5 fw-bold text-primary">{{ statement.closing_balance|floatformat:2 }}</div>
+    </div></div></div>
+    <div class="col-md-4"><div class="card text-center"><div class="card-body">
+        <div class="text-muted small">Movements</div><div class="fs-5 fw-bold">{{ lines|length }}</div>
+    </div></div></div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead><tr><th>Date</th><th>Type</th><th>Reference</th><th class="text-end">Debit</th><th class="text-end">Credit</th><th class="text-end">Balance</th></tr></thead>
+            <tbody>
+                <tr class="table-light"><td colspan="5">Opening Balance</td><td class="text-end fw-bold">{{ statement.opening_balance|floatformat:2 }}</td></tr>
+                {% for line in lines %}
+                <tr>
+                    <td>{{ line.date }}</td>
+                    <td>{{ line.get_entry_type_display }}</td>
+                    <td>{{ line.reference_number|default:"—" }}</td>
+                    <td class="text-end">{% if line.debit %}{{ line.debit|floatformat:2 }}{% endif %}</td>
+                    <td class="text-end">{% if line.credit %}{{ line.credit|floatformat:2 }}{% endif %}</td>
+                    <td class="text-end">{{ line.running_balance|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-3">No movements in this period.</td></tr>
+                {% endfor %}
+                <tr class="table-light"><td colspan="5" class="fw-bold">Closing Balance</td><td class="text-end fw-bold">{{ statement.closing_balance|floatformat:2 }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

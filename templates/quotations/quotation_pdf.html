@@ -1,0 +1,39 @@
+{% extends "documents/base_document.html" %}
+{% block doc_type_label %}QUOTATION{% endblock %}
+{% block document_content %}
+<table class="doc-table">
+    <thead><tr>
+        <th>Commodity</th><th>POL</th><th>POD</th><th>Qty</th><th>FPOD</th>
+    </tr></thead>
+    <tbody>
+        <tr>
+            <td>{{ quotation.commodity|default:"—" }}</td>
+            <td>{{ quotation.origin_port|default:"—" }}</td>
+            <td>{{ quotation.destination_port|default:"—" }}</td>
+            <td>{{ quotation.commodity_quantity }} {{ quotation.commodity_unit }}</td>
+            <td>{{ quotation.final_destination|default:"—" }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<table class="doc-table">
+    <thead><tr>
+        <th>Description</th><th class="num">Quantity</th><th class="num">Unit Price</th>
+        <th class="num">VAT ({{ currency_symbol }})</th><th class="num">Total Amount ({{ currency_symbol }})</th>
+    </tr></thead>
+    <tbody>
+        {% for line in items %}
+        <tr>
+            <td>{% if line.item.code %}[{{ line.item.code }}] {% endif %}{{ line.description }}</td>
+            <td class="num">{{ line.quantity }}</td>
+            <td class="num">{{ line.unit_price|floatformat:2 }}</td>
+            <td class="num">{{ line.vat_amount|floatformat:2 }}</td>
+            <td class="num">{{ line.total_amount|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% if quotation.terms %}
+<p style="font-size:9.5px; color:#555; margin-top:14px;"><strong>Terms:</strong> {{ quotation.terms }}</p>
+{% endif %}
+{% endblock %}

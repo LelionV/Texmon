@@ -1,0 +1,43 @@
+{% extends "documents/base_document.html" %}
+{% block doc_type_label %}INVOICE{% endblock %}
+{% block document_content %}
+<table class="doc-table">
+    <thead><tr><th>Commodity</th><th>POL</th><th>POD</th><th>Vessel</th><th>BL Number</th><th>Due Date</th></tr></thead>
+    <tbody>
+        <tr>
+            <td>{{ invoice.commodity|default:"—" }}</td>
+            <td>{{ invoice.origin_port|default:"—" }}</td>
+            <td>{{ invoice.destination_port|default:"—" }}</td>
+            <td>{{ invoice.vessel|default:"—" }}</td>
+            <td>{{ invoice.bl_number|default:"—" }}</td>
+            <td>{{ invoice.due_date|date:"d/m/Y" }}</td>
+        </tr>
+    </tbody>
+</table>
+<table class="doc-table">
+    <thead><tr>
+        <th>Description</th><th class="num">Quantity</th><th class="num">Unit Price</th>
+        <th class="num">VAT ({{ currency_symbol }})</th><th class="num">Total Amount ({{ currency_symbol }})</th>
+    </tr></thead>
+    <tbody>
+        {% for line in items %}
+        <tr>
+            <td>{{ line.description }}</td>
+            <td class="num">{{ line.quantity }}</td>
+            <td class="num">{{ line.unit_price|floatformat:2 }}</td>
+            <td class="num">{{ line.vat_amount|floatformat:2 }}</td>
+            <td class="num">{{ line.total_amount|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+{% block totals_block %}
+<table class="totals-table">
+    <tr><td class="label">Subtotal Amount:</td><td class="value">{{ subtotal|floatformat:2 }}</td></tr>
+    <tr><td class="label">VAT:</td><td class="value">{{ vat_total|floatformat:2 }}</td></tr>
+    <tr class="grand"><td class="label">Grand Total ({{ currency_symbol }}):</td><td class="value">{{ grand_total|floatformat:2 }}</td></tr>
+    <tr><td class="label">Paid to date:</td><td class="value">{{ invoice.paid_amount|floatformat:2 }}</td></tr>
+    <tr class="grand"><td class="label">Balance Due ({{ currency_symbol }}):</td><td class="value">{{ invoice.balance_due|floatformat:2 }}</td></tr>
+</table>
+{% endblock %}

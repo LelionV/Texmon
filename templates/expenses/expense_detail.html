@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block page_title %}{{ expense.expense_number }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h4 class="mb-0">{{ expense.expense_number }}
+            <span class="badge
+                {% if expense.status == 'draft' %}bg-secondary
+                {% elif expense.status == 'submitted' %}bg-warning text-dark
+                {% elif expense.status == 'approved' %}bg-success
+                {% else %}bg-danger{% endif %}">{{ expense.get_status_display }}</span>
+        </h4>
+        <div class="text-muted">{{ expense.category }} &middot; {{ expense.date }}</div>
+    </div>
+    <div class="d-flex gap-2">
+        {% if expense.is_editable and perms.expenses.change_expense %}
+            <a href="{% url 'expenses:expense_update' expense.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+        {% endif %}
+        {% if expense.status == 'draft' and perms.expenses.change_expense %}
+            <form method="post" action="{% url 'expenses:expense_submit' expense.pk %}">{% csrf_token %}
+                <button class="btn btn-warning btn-sm">Submit for Approval</button></form>
+        {% endif %}
+        {% if expense.status == 'submitted' and perms.expenses.approve_expense %}
+            <form method="post" action="{% url 'expenses:expense_approve' expense.pk %}">{% csrf_token %}
+                <button class="btn btn-success btn-sm">Approve</button></form>
+            <form method="post" action="{% url 'expenses:expense_reject' expense.pk %}">{% csrf_token %}
+                <button class="btn btn-outline-danger btn-sm">Reject</button></form>
+        {% endif %}
+        {% if expense.status == 'submitted' or expense.status == 'rejected' %}
+            {% if perms.expenses.change_expense %}
+            <form method="post" action="{% url 'expenses:expense_revert' expense.pk %}">{% csrf_token %}
+                <button class="btn btn-outline-secondary btn-sm">Revert to Draft</button></form>
+            {% endif %}
+        {% endif %}
+        {% if expense.attachment %}
+            <a href="{{ expense.attachment.url }}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="bi bi-paperclip me-1"></i>Attachment</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-8">
+        <div class="card h-100"><div class="card-body">
+            <h6 class="card-title text-muted">Details</h6>
+            <dl class="row mb-0 small">
+                <dt class="col-3">Description</dt><dd class="col-9">{{ expense.description }}</dd>
+                <dt class="col-3">Supplier</dt><dd class="col-9">{{ expense.supplier|default:"—" }}</dd>
+                <dt class="col-3">Amount</dt><dd class="col-9">{{ expense.currency.symbol }}{{ expense.amount|floatformat:2 }}</dd>
+                <dt class="col-3">VAT ({{ expense.vat_percentage }}%)</dt><dd class="col-9">{{ expense.currency.symbol }}{{ expense.vat_amount|floatformat:2 }}</dd>
+                <dt class="col-3">Total</dt><dd class="col-9 fw-bold">{{ expense.currency.symbol }}{{ expense.total_amount|floatformat:2 }}</dd>
+                <dt class="col-3">Approved By</dt><dd class="col-9">{{ expense.approved_by|default:"—" }}</dd>
+            </dl>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 text-center"><div class="card-body">
+            <div class="text-muted small">Balance Owed to Supplier</div>
+            <div class="fs-4 fw-bold {% if expense.balance_due > 0 %}text-danger{% else %}text-success{% endif %}">
+                {{ expense.currency.symbol }}{{ expense.balance_due|floatformat:2 }}
+            </div>
+            <div class="text-muted small mt-1">Paid: {{ expense.currency.symbol }}{{ expense.paid_amount|floatformat:2 }}</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card"><div class="card-body">
+            <h6 class="card-title text-muted">Supplier Payments</h6>
+            <table class="table table-sm mb-0">
+                <thead><tr><th>Date</th><th>Reference</th><th class="text-end">Amount</th></tr></thead>
+                <tbody>
+                {% for p in payments %}
+                    <tr><td>{{ p.payment_date }}</td><td>{{ p.reference_number|default:"—" }}</td>
+                        <td class="text-end">{{ expense.currency.symbol }}{{ p.amount|floatformat:2 }}</td></tr>
+                {% empty %}
+                    <tr><td colspan="3" class="text-center text-muted py-3">No payments recorded yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div></div>
+    </div>
+    <div class="col-md-5">
+        {% if expense.status == 'approved' and not expense.supplier %}
+            <div class="alert alert-secondary small">This expense has no supplier assigned, so supplier payments cannot be recorded against it.</div>
+        {% elif expense.status == 'approved' and expense.balance_due > 0 and perms.expenses.add_supplierpayment %}
+        <div class="card"><div class="card-body">
+            <h6 class="card-title text-muted">Record Supplier Payment</h6>
+            <form method="post" action="{% url 'expenses:add_supplier_payment' expense.pk %}">
+                {% csrf_token %}
+                <div class="mb-2"><label class="form-label">Payment Date</label>{{ payment_form.payment_date }}</div>
+                <div class="mb-2"><label class="form-label">Amount (max {{ expense.currency.symbol }}{{ expense.balance_due|floatformat:2 }})</label>{{ payment_form.amount }}</div>
+                <div class="mb-2"><label class="form-label">Reference Number</label>{{ payment_form.reference_number }}</div>
+                <div class="mb-2"><label class="form-label">Notes</label>{{ payment_form.notes }}</div>
+                <button type="submit" class="btn btn-success w-100">Record Payment</button>
+            </form>
+        </div></div>
+        {% elif expense.status != 'approved' %}
+            <div class="alert alert-secondary small">Supplier payments can only be recorded once this expense is Approved.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
