@@ -1,5 +1,7 @@
 Django>=5.0,<6.0
 gunicorn
+dj-database-url
+psycopg2-binary
 djangorestframework
 django-htmx
 xhtml2pdf
