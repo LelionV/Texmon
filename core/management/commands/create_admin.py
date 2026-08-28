@@ -11,14 +11,21 @@ class Command(BaseCommand):
         User = get_user_model()
 
         username = os.environ.get("DJANGO_ADMIN_USERNAME")
-        email = os.environ.get("DJANGO_ADMIN_EMAIL")
+        email = os.environ.get("DJANGO_ADMIN_EMAIL", "")
         password = os.environ.get("DJANGO_ADMIN_PASSWORD")
 
-        if not username or not password:
+        if not username:
             self.stdout.write(
                 self.style.ERROR(
-                    "DJANGO_ADMIN_USERNAME and DJANGO_ADMIN_PASSWORD "
-                    "must be configured."
+                    "DJANGO_ADMIN_USERNAME is not configured."
+                )
+            )
+            return
+
+        if not password:
+            self.stdout.write(
+                self.style.ERROR(
+                    "DJANGO_ADMIN_PASSWORD is not configured."
                 )
             )
             return
@@ -26,14 +33,14 @@ class Command(BaseCommand):
         user, created = User.objects.get_or_create(
             username=username,
             defaults={
-                "email": email or "",
+                "email": email,
             },
         )
 
-        user.email = email or user.email
+        user.email = email
+        user.is_active = True
         user.is_staff = True
         user.is_superuser = True
-        user.is_active = True
         user.set_password(password)
         user.save()
 
@@ -46,6 +53,6 @@ class Command(BaseCommand):
         else:
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"User '{username}' promoted to superuser successfully."
+                    f"User '{username}' updated as superuser successfully."
                 )
             )
