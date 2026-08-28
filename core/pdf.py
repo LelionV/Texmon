@@ -1,30 +1,49 @@
 """
 Shared PDF-rendering helper used by every app's *_pdf view.
 
-We use xhtml2pdf (pure Python, ships its own PDF writer) instead of
-WeasyPrint. WeasyPrint depends on system GTK/Pango/Cairo libraries
-(libgobject-2.0-0 and friends); on Windows in particular those aren't
-present unless GTK is separately installed, which produces exactly the
-"cannot load library 'gobject-2.0-0'" OSError this replaces. xhtml2pdf has
-no such system dependency -- `pip install xhtml2pdf` is enough on any OS.
+Uses Playwright with Chromium to render HTML/CSS into PDF.
 
-Trade-off: xhtml2pdf only understands a CSS 2.1-ish subset (no flexbox, no
-grid, limited box-shadow/border-radius). templates/documents/base_document.html
-was written with a table-based layout specifically so it renders correctly
-under this engine.
+Playwright provides consistent, modern HTML/CSS rendering across
+Windows development environments and Linux-based production
+environments such as Render.
 """
 
-from io import BytesIO
-
-from xhtml2pdf import pisa
+from playwright.sync_api import sync_playwright
 
 
-def render_pdf(html_string: str) -> bytes:
+def render_pdf(html_string: str, base_url: str | None = None) -> bytes:
     """Render an HTML string to PDF bytes. Raises RuntimeError on failure."""
-    buffer = BytesIO()
-    result = pisa.CreatePDF(src=html_string, dest=buffer)
-    if result.err:
-        raise RuntimeError(
-            f"PDF generation failed ({result.err} error(s) reported by xhtml2pdf)."
-        )
-    return buffer.getvalue()
+
+    try:
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+
+            page = browser.new_page()
+
+            if base_url:
+                page.goto(base_url, wait_until="networkidle")
+
+            else:
+                page.set_content(
+                    html_string,
+                    wait_until="networkidle",
+                )
+
+            pdf_bytes = page.pdf(
+                format="A4",
+                print_background=True,
+                prefer_css_page_size=True,
+                margin={
+                    "top": "15mm",
+                    "right": "12mm",
+                    "bottom": "15mm",
+                    "left": "12mm",
+                },
+            )
+
+            browser.close()
+
+            return pdf_bytes
+
+    except Exception as exc:
+        raise RuntimeError(f"PDF generation failed: {exc}") from exc

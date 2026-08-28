@@ -21,6 +21,45 @@
     </div></div></div>
 </div>
 
+<!-- Aging Analysis Table -->
+<div class="card mb-3">
+    <div class="card-header bg-body-tertiary">
+        <h6 class="card-title mb-0 fw-bold">Unpaid Aging Breakdown</h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-bordered mb-0 text-center">
+            <thead class="table-light">
+                <tr>
+                    <th>0 &ndash; 30 Days</th>
+                    <th>31 &ndash; 60 Days</th>
+                    <th>61 &ndash; 90 Days</th>
+                    <th>90+ Days</th>
+                    <th class="table-secondary">Total Outstanding</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="{% if aging.days_0_30 > 0 %}text-danger fw-semibold{% endif %}">
+                        {{ aging.days_0_30|default:0|floatformat:2 }}
+                    </td>
+                    <td class="{% if aging.days_31_60 > 0 %}text-danger fw-semibold{% endif %}">
+                        {{ aging.days_31_60|default:0|floatformat:2 }}
+                    </td>
+                    <td class="{% if aging.days_61_90 > 0 %}text-danger fw-semibold{% endif %}">
+                        {{ aging.days_61_90|default:0|floatformat:2 }}
+                    </td>
+                    <td class="{% if aging.days_90_plus > 0 %}text-danger fw-semibold{% endif %}">
+                        {{ aging.days_90_plus|default:0|floatformat:2 }}
+                    </td>
+                    <td class="table-secondary fw-bold text-danger">
+                        {{ statement.closing_balance|default:0|floatformat:2 }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-body p-0">
         <table class="table mb-0">
@@ -29,7 +68,7 @@
                 <tr class="table-light"><td colspan="5">Opening Balance</td><td class="text-end fw-bold">{{ statement.opening_balance|floatformat:2 }}</td></tr>
                 {% for line in lines %}
                 <tr>
-                    <td>{{ line.date }}</td>
+                    <td>{{ line.date|date:"d/m/Y" }}</td>
                     <td>{{ line.get_entry_type_display }}</td>
                     <td>{{ line.reference_number|default:"—" }}</td>
                     <td class="text-end">{% if line.debit %}{{ line.debit|floatformat:2 }}{% endif %}</td>
@@ -44,4 +83,5 @@
         </table>
     </div>
 </div>
+{% endblock %}/div>
 {% endblock %}

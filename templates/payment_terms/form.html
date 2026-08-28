@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h4 class="mb-1">
+
+                {% if payment_term %}
+                    Edit Payment Term
+                {% else %}
+                    Add Payment Term
+                {% endif %}
+
+            </h4>
+
+            <p class="text-muted mb-0">
+                Configure payment terms used across the system.
+            </p>
+
+        </div>
+
+        <a
+            href="{% url 'masters:payment_term_list' %}"
+            class="btn btn-light"
+        >
+            <i class="bi bi-arrow-left me-1"></i>
+            Back
+        </a>
+
+    </div>
+
+
+    <div class="row">
+
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-white">
+                    <strong>Payment Term Details</strong>
+                </div>
+
+
+                <div class="card-body">
+
+                    <form method="post">
+
+                        {% csrf_token %}
+
+                        <div class="row g-3">
+
+
+                            <!-- Name -->
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Payment Term
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="name"
+                                    class="form-control"
+                                    value="{% if form_data %}{{ form_data.name }}{% elif payment_term %}{{ payment_term.name }}{% endif %}"
+                                    placeholder="e.g. 30 Days"
+                                    required
+                                >
+
+                                {% if errors.name %}
+                                    <div class="text-danger small mt-1">
+                                        {{ errors.name }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- Days -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Days
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="days"
+                                    min="0"
+                                    class="form-control"
+                                    value="{% if form_data %}{{ form_data.days }}{% elif payment_term %}{{ payment_term.days }}{% else %}0{% endif %}"
+                                    required
+                                >
+
+                                <div class="form-text">
+                                    Number of days until payment is due.
+                                </div>
+
+                                {% if errors.days %}
+                                    <div class="text-danger small mt-1">
+                                        {{ errors.days }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- Status -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Status
+                                </label>
+
+                                <div class="form-check form-switch mt-2">
+
+                                    <input
+                                        type="checkbox"
+                                        name="is_active"
+                                        class="form-check-input"
+                                        id="is_active"
+                                        {% if form_data %}
+                                            {% if form_data.is_active %}checked{% endif %}
+                                        {% elif not payment_term or payment_term.is_active %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <label
+                                        class="form-check-label"
+                                        for="is_active"
+                                    >
+                                        Active
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Description -->
+                            <div class="col-12">
+
+                                <label class="form-label">
+                                    Description
+                                </label>
+
+                                <textarea
+                                    name="description"
+                                    class="form-control"
+                                    rows="4"
+                                    placeholder="Optional description..."
+                                >{% if form_data %}{{ form_data.description }}{% elif payment_term %}{{ payment_term.description }}{% endif %}</textarea>
+
+                            </div>
+
+
+                        </div>
+
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+
+                            <a
+                                href="{% url 'masters:payment_term_list' %}"
+                                class="btn btn-light"
+                            >
+                                Cancel
+                            </a>
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+
+                                <i class="bi bi-check-lg me-1"></i>
+
+                                {% if payment_term %}
+                                    Update Payment Term
+                                {% else %}
+                                    Save Payment Term
+                                {% endif %}
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

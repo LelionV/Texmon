@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Logistics ERP - Phase 1
 
 Project setup, custom user model, Django Groups/permissions, base layout, and
@@ -627,3 +628,6 @@ it still works correctly for any company's data entered into the system:
 
 ### Testing
 7 new tests — **85/85 passing project-wide.**
+=======
+# Texmon
+>>>>>>> 46fbd2c (Initial commit)

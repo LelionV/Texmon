@@ -302,3 +302,483 @@ class DocumentSettingsHistoryView(SingletonHistoryView):
     def model(self):
         from .models import DocumentSettings
         return DocumentSettings
+
+
+
+
+
+from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views import View
+
+from .models import Currency
+
+
+class CurrencyListView(LoginRequiredMixin, View):
+    template_name = "masters/currencies/list.html"
+
+    def get(self, request):
+        query = request.GET.get("q", "").strip()
+
+        currencies = Currency.objects.all()
+
+        if query:
+            currencies = currencies.filter(
+                Q(name__icontains=query)
+                | Q(code__icontains=query)
+                | Q(symbol__icontains=query)
+            )
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "currencies": currencies,
+                "query": query,
+            },
+        )
+
+
+class CurrencyCreateView(LoginRequiredMixin, View):
+    template_name = "masters/currencies/form.html"
+
+    def get(self, request):
+        return render(
+            request,
+            self.template_name,
+            {
+                "currency": None,
+            },
+        )
+
+    def post(self, request):
+        name = request.POST.get("name", "").strip()
+        code = request.POST.get("code", "").strip().upper()
+        symbol = request.POST.get("symbol", "").strip()
+        exchange_rate = request.POST.get("exchange_rate", "1").strip()
+        is_active = request.POST.get("is_active") == "on"
+
+        errors = {}
+
+        if not name:
+            errors["name"] = "Currency name is required."
+
+        if not code:
+            errors["code"] = "Currency code is required."
+        elif len(code) != 3:
+            errors["code"] = "Currency code must be 3 characters."
+        elif Currency.objects.filter(code=code).exists():
+            errors["code"] = "This currency code already exists."
+
+        if not symbol:
+            errors["symbol"] = "Currency symbol is required."
+
+        if not exchange_rate:
+            errors["exchange_rate"] = "Exchange rate is required."
+
+        if errors:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "currency": None,
+                    "errors": errors,
+                    "form_data": request.POST,
+                },
+            )
+
+        currency = Currency(
+            name=name,
+            code=code,
+            symbol=symbol,
+            exchange_rate=exchange_rate,
+            is_active=is_active,
+        )
+
+        if hasattr(currency, "created_by_id"):
+            currency.created_by = request.user
+
+        if hasattr(currency, "updated_by_id"):
+            currency.updated_by = request.user
+
+        if hasattr(currency, "_history_user"):
+            currency._history_user = request.user
+
+        currency.save()
+
+        messages.success(
+            request,
+            f"Currency '{currency.code}' created successfully.",
+        )
+
+        return redirect("masters:currency_list")
+
+
+class CurrencyUpdateView(LoginRequiredMixin, View):
+    template_name = "masters/currencies/form.html"
+
+    def get_currency(self, pk):
+        return get_object_or_404(Currency, pk=pk)
+
+    def get(self, request, pk):
+        currency = self.get_currency(pk)
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "currency": currency,
+            },
+        )
+
+    def post(self, request, pk):
+        currency = self.get_currency(pk)
+
+        name = request.POST.get("name", "").strip()
+        code = request.POST.get("code", "").strip().upper()
+        symbol = request.POST.get("symbol", "").strip()
+        exchange_rate = request.POST.get("exchange_rate", "1").strip()
+        is_active = request.POST.get("is_active") == "on"
+
+        errors = {}
+
+        if not name:
+            errors["name"] = "Currency name is required."
+
+        if not code:
+            errors["code"] = "Currency code is required."
+        elif len(code) != 3:
+            errors["code"] = "Currency code must be 3 characters."
+        elif Currency.objects.filter(
+            code=code
+        ).exclude(pk=currency.pk).exists():
+            errors["code"] = "This currency code already exists."
+
+        if not symbol:
+            errors["symbol"] = "Currency symbol is required."
+
+        if not exchange_rate:
+            errors["exchange_rate"] = "Exchange rate is required."
+
+        if errors:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "currency": currency,
+                    "errors": errors,
+                    "form_data": request.POST,
+                },
+            )
+
+        currency.name = name
+        currency.code = code
+        currency.symbol = symbol
+        currency.exchange_rate = exchange_rate
+        currency.is_active = is_active
+
+        if hasattr(currency, "updated_by_id"):
+            currency.updated_by = request.user
+
+        if hasattr(currency, "_history_user"):
+            currency._history_user = request.user
+
+        currency.save()
+
+        messages.success(
+            request,
+            f"Currency '{currency.code}' updated successfully.",
+        )
+
+        return redirect("masters:currency_list")
+
+
+class CurrencyDeleteView(LoginRequiredMixin, View):
+
+    def post(self, request, pk):
+        currency = get_object_or_404(Currency, pk=pk)
+
+        code = currency.code
+
+        try:
+            currency.delete()
+
+            messages.success(
+                request,
+                f"Currency '{code}' deleted successfully.",
+            )
+
+        except Exception:
+            messages.error(
+                request,
+                f"Currency '{code}' cannot be deleted because it is "
+                f"being used by other records.",
+            )
+
+        return redirect("masters:currency_list")
+
+
+from django.db.models import Q
+class PaymentTermListView(LoginRequiredMixin, View):
+    template_name = "masters/payment_terms/list.html"
+
+    def get(self, request):
+        query = request.GET.get("q", "").strip()
+
+        payment_terms = PaymentTerm.objects.all()
+
+        if query:
+            payment_terms = payment_terms.filter(
+                Q(name__icontains=query)
+                | Q(description__icontains=query)
+            )
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "payment_terms": payment_terms,
+                "query": query,
+            },
+        )
+
+
+class PaymentTermCreateView(LoginRequiredMixin, View):
+    template_name = "masters/payment_terms/form.html"
+
+    def get(self, request):
+        return render(
+            request,
+            self.template_name,
+            {
+                "payment_term": None,
+            },
+        )
+
+    def post(self, request):
+        name = request.POST.get("name", "").strip()
+        days = request.POST.get("days", "0").strip()
+        description = request.POST.get("description", "").strip()
+        is_active = request.POST.get("is_active") == "on"
+
+        errors = {}
+
+        if not name:
+            errors["name"] = "Payment term name is required."
+
+        try:
+            days = int(days)
+            if days < 0:
+                errors["days"] = "Days cannot be negative."
+        except (TypeError, ValueError):
+            errors["days"] = "Enter a valid number of days."
+
+        if errors:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "payment_term": None,
+                    "errors": errors,
+                    "form_data": request.POST,
+                },
+            )
+
+        payment_term = PaymentTerm(
+            name=name,
+            days=days,
+            description=description,
+            is_active=is_active,
+        )
+
+        if hasattr(payment_term, "created_by_id"):
+            payment_term.created_by = request.user
+
+        if hasattr(payment_term, "updated_by_id"):
+            payment_term.updated_by = request.user
+
+        payment_term._history_user = request.user
+        payment_term.save()
+
+        messages.success(
+            request,
+            f"Payment term '{payment_term.name}' created successfully.",
+        )
+
+        return redirect("masters:payment_term_list")
+
+
+class PaymentTermUpdateView(LoginRequiredMixin, View):
+    template_name = "masters/payment_terms/form.html"
+
+    def get_payment_term(self, pk):
+        return get_object_or_404(PaymentTerm, pk=pk)
+
+    def get(self, request, pk):
+        payment_term = self.get_payment_term(pk)
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "payment_term": payment_term,
+            },
+        )
+
+    def post(self, request, pk):
+        payment_term = self.get_payment_term(pk)
+
+        name = request.POST.get("name", "").strip()
+        days = request.POST.get("days", "0").strip()
+        description = request.POST.get("description", "").strip()
+        is_active = request.POST.get("is_active") == "on"
+
+        errors = {}
+
+        if not name:
+            errors["name"] = "Payment term name is required."
+
+        try:
+            days = int(days)
+            if days < 0:
+                errors["days"] = "Days cannot be negative."
+        except (TypeError, ValueError):
+            errors["days"] = "Enter a valid number of days."
+
+        if errors:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "payment_term": payment_term,
+                    "errors": errors,
+                    "form_data": request.POST,
+                },
+            )
+
+        payment_term.name = name
+        payment_term.days = days
+        payment_term.description = description
+        payment_term.is_active = is_active
+
+        if hasattr(payment_term, "updated_by_id"):
+            payment_term.updated_by = request.user
+
+        payment_term._history_user = request.user
+        payment_term.save()
+
+        messages.success(
+            request,
+            f"Payment term '{payment_term.name}' updated successfully.",
+        )
+
+        return redirect("masters:payment_term_list")
+
+
+class PaymentTermDeleteView(LoginRequiredMixin, View):
+
+    def post(self, request, pk):
+        payment_term = get_object_or_404(PaymentTerm, pk=pk)
+
+        name = payment_term.name
+
+        try:
+            payment_term.delete()
+
+            messages.success(
+                request,
+                f"Payment term '{name}' deleted successfully.",
+            )
+
+        except ProtectedError:
+            messages.error(
+                request,
+                f"Payment term '{name}' cannot be deleted because it is "
+                f"being used by other records.",
+            )
+
+        return redirect("masters:payment_term_list")
+
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views import View
+
+from .models import ReferenceDocument
+class ReferenceDocumentListView(LoginRequiredMixin, View):
+    template_name = "masters/reference_documents/list.html"
+
+    def get(self, request):
+        query = request.GET.get("q", "").strip()
+
+        documents = ReferenceDocument.objects.all()
+
+        if query:
+            documents = documents.filter(
+                Q(name__icontains=query)
+                | Q(description__icontains=query)
+            )
+
+        documents = documents.prefetch_related(
+            "quotations"
+        )
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "documents": documents,
+                "query": query,
+            },
+        )
+
+
+class ReferenceDocumentDetailView(LoginRequiredMixin, View):
+    template_name = "masters/reference_documents/detail.html"
+
+    def get(self, request, pk):
+        document = get_object_or_404(
+            ReferenceDocument,
+            pk=pk,
+        )
+
+        quotations = (
+            document.quotations
+            .select_related("client")
+            .order_by("-date")
+        )
+
+        chains = []
+
+        for quotation in quotations:
+
+            proforma = getattr(
+                quotation,
+                "proforma",
+                None,
+            )
+
+            invoice = (
+                getattr(proforma, "invoice", None)
+                if proforma
+                else None
+            )
+
+            chains.append(
+                {
+                    "quotation": quotation,
+                    "proforma": proforma,
+                    "invoice": invoice,
+                }
+            )
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "document": document,
+                "chains": chains,
+            },
+        )

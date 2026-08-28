@@ -1,39 +1,178 @@
 {% extends "documents/base_document.html" %}
+
 {% block doc_type_label %}QUOTATION{% endblock %}
+
+{% block doc_tag %}
+    {% if quotation.status %}
+        {{ quotation.status|upper }}
+    {% else %}
+        QUOTATION
+    {% endif %}
+{% endblock %}
+
 {% block document_content %}
+<style>
+    /* Force WeasyPrint table layout compliance & prevent CSS collapse */
+    table.doc-table {
+        display: table !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 15px !important;
+        table-layout: fixed !important;
+    }
+    table.doc-table tr {
+        display: table-row !important;
+        page-break-inside: avoid !important;
+    }
+    table.doc-table th {
+        display: table-cell !important;
+        background-color: #002B49 !important;
+        color: #ffffff !important;
+        padding: 6px 8px !important;
+        font-size: 10px !important;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+    table.doc-table td {
+        display: table-cell !important;
+        color: #000000 !important;
+        padding: 6px 8px !important;
+        font-size: 10px !important;
+        border-bottom: 1px solid #e0e0e0;
+        vertical-align: top;
+    }
+    .num {
+        text-align: right !important;
+    }
+</style>
+
+<!-- Logistics Table -->
 <table class="doc-table">
-    <thead><tr>
-        <th>Commodity</th><th>POL</th><th>POD</th><th>Qty</th><th>FPOD</th>
-    </tr></thead>
+    <thead>
+        <tr>
+            <th style="width: 25%;">COMMODITY</th>
+            <th style="width: 20%;">POL</th>
+            <th style="width: 20%;">POD</th>
+            <th style="width: 15%;">QTY</th>
+            <th style="width: 20%;">FPOD</th>
+        </tr>
+    </thead>
     <tbody>
         <tr>
             <td>{{ quotation.commodity|default:"—" }}</td>
             <td>{{ quotation.origin_port|default:"—" }}</td>
             <td>{{ quotation.destination_port|default:"—" }}</td>
-            <td>{{ quotation.commodity_quantity }} {{ quotation.commodity_unit }}</td>
+            <td>
+                {% if quotation.commodity_quantity or quotation.commodity_unit %}
+                    {{ quotation.commodity_quantity }} {{ quotation.commodity_unit }}
+                {% else %}
+                    —
+                {% endif %}
+            </td>
             <td>{{ quotation.final_destination|default:"—" }}</td>
         </tr>
     </tbody>
 </table>
 
+<!-- Line Items Table -->
 <table class="doc-table">
-    <thead><tr>
-        <th>Description</th><th class="num">Quantity</th><th class="num">Unit Price</th>
-        <th class="num">VAT ({{ currency_symbol }})</th><th class="num">Total Amount ({{ currency_symbol }})</th>
-    </tr></thead>
+    <thead>
+        <tr>
+            <th style="width: 40%;">DESCRIPTION</th>
+            <th class="num" style="width: 15%;">QUANTITY</th>
+            <th class="num" style="width: 15%;">UNIT PRICE ({{ currency_symbol|default:"$" }})</th>
+            <th class="num" style="width: 15%;">VAT ({{ currency_symbol|default:"$" }})</th>
+            <th class="num" style="width: 15%;">TOTAL AMOUNT ({{ currency_symbol|default:"$" }})</th>
+        </tr>
+    </thead>
     <tbody>
         {% for line in items %}
         <tr>
-            <td>{% if line.item.code %}[{{ line.item.code }}] {% endif %}{{ line.description }}</td>
-            <td class="num">{{ line.quantity }}</td>
-            <td class="num">{{ line.unit_price|floatformat:2 }}</td>
-            <td class="num">{{ line.vat_amount|floatformat:2 }}</td>
-            <td class="num">{{ line.total_amount|floatformat:2 }}</td>
+            <td>
+                {% if line.item_id and line.item.code %}[{{ line.item.code }}] {% endif %}{{ line.description }}
+            </td>
+            <td class="num">{{ line.quantity|default:0|floatformat:"-2" }}</td>
+            <td class="num">{{ currency_symbol|default:"$" }} {{ line.unit_price|default:0|floatformat:2 }}</td>
+            <td class="num">{{ currency_symbol|default:"$" }} {{ line.vat_amount|default:0|floatformat:2 }}</td>
+            <td class="num">{{ currency_symbol|default:"$" }} {{ line.total_amount|default:0|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center; color: #666666;">No Line Items Found</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-{% if quotation.terms %}
-<p style="font-size:9.5px; color:#555; margin-top:14px;"><strong>Terms:</strong> {{ quotation.terms }}</p>
+
+<!-- Totals & Signatures Section -->
+<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+    <tr>
+        <td style="width: 50%; vertical-align: top; font-size: 9.5px; color: #555;">
+            {% if quotation.payment_terms %}
+                <strong>Payment Terms:</strong> {{ quotation.payment_terms.name }}<br>
+            {% endif %}
+            {% if quotation.valid_until %}
+                <strong>Valid Until:</strong> {{ quotation.valid_until|date:"Y-m-d" }}<br>
+            {% endif %}
+            {% if reference_number %}
+                <strong>Reference:</strong> {{ reference_number }}
+            {% endif %}
+        </td>
+        <td style="width: 50%; vertical-align: top;">
+            <table style="width: 100%; font-size: 10px; border-collapse: collapse;">
+                <tr>
+                    <td style="text-align: right; padding: 4px 0; color: #555; border-bottom: 1px solid #eee;">Subtotal Amount:</td>
+                    <td style="text-align: right; padding: 4px 0; font-weight: bold; border-bottom: 1px solid #eee;" class="num">{{ currency_symbol|default:"$" }} {{ subtotal|default:0|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td style="text-align: right; padding: 4px 0; color: #555; border-bottom: 1px solid #ccc;">VAT Total:</td>
+                    <td style="text-align: right; padding: 4px 0; font-weight: bold; border-bottom: 1px solid #ccc;" class="num">{{ currency_symbol|default:"$" }} {{ vat_total|default:0|floatformat:2 }}</td>
+                </tr>
+                <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                    <td style="text-align: right; padding: 5px 0; font-size: 10.5px; font-weight: bold;">Grand Total ({{ quotation.currency.code|default:"KES" }}):</td>
+                    <td style="text-align: right; padding: 5px 0; font-size: 10.5px; font-weight: bold;" class="num">{{ currency_symbol|default:"$" }} {{ grand_total|default:0|floatformat:2 }}</td>
+                </tr>
+                {% if quotation.paid_amount %}
+                <tr>
+                    <td style="text-align: right; padding: 4px 0; color: #555; border-bottom: 1px solid #eee;">Paid to Date:</td>
+                    <td style="text-align: right; padding: 4px 0; font-weight: bold; color: #008751; border-bottom: 1px solid #eee;" class="num">{{ currency_symbol|default:"$" }} {{ quotation.paid_amount|default:0|floatformat:2 }}</td>
+                </tr>
+                <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000;">
+                    <td style="text-align: right; padding: 6px 0; font-size: 11px; font-weight: bold; color: #E31B23;">Balance Due ({{ quotation.currency.code|default:"KES" }}):</td>
+                    <td style="text-align: right; padding: 6px 0; font-size: 11px; font-weight: bold; color: #E31B23;" class="num">{{ currency_symbol|default:"$" }} {{ quotation.balance_due|default:0|floatformat:2 }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </td>
+    </tr>
+</table>
+
+<!-- Terms & Notes -->
+{% if quotation.notes %}
+<p style="font-size:9.5px; color:#555; margin-top:15px;"><strong>Notes:</strong> {{ quotation.notes|linebreaksbr }}</p>
 {% endif %}
+
+{% if quotation.terms %}
+<p style="font-size:9.5px; color:#555; margin-top:10px;"><strong>Terms & Conditions:</strong> {{ quotation.terms|linebreaksbr }}</p>
+{% endif %}
+
+<!-- Signatures -->
+{% with prepared_by=quotation.prepared_by approved_by=quotation.approved_by %}
+<div style="margin-top: 40px; width: 100%;">
+    <table style="width: 100%; text-align: center; font-size: 10px; color: #333;">
+        <tr>
+            <td style="width: 40%; border-top: 1px solid #000; padding-top: 5px;">
+                {% if prepared_by.get_full_name %}{{ prepared_by.get_full_name }}{% elif prepared_by.username %}{{ prepared_by.username }}{% else %}{{ prepared_by|default:"admin" }}{% endif %}<br>
+                <span style="color: #666;">Prepared By</span>
+            </td>
+            <td style="width: 20%;"></td>
+            <td style="width: 40%; border-top: 1px solid #000; padding-top: 5px;">
+                {% if approved_by.get_full_name %}{{ approved_by.get_full_name }}{% elif approved_by.username %}{{ approved_by.username }}{% else %}{{ approved_by|default:"admin" }}{% endif %}<br>
+                <span style="color: #666;">Approved By</span>
+            </td>
+        </tr>
+    </table>
+</div>
+{% endwith %}
+
 {% endblock %}

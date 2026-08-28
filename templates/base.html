@@ -111,6 +111,20 @@
         <div class="nav-section-title">Master Data</div>
         <a class="nav-link" href="{% url 'masters:hub' %}"><i class="bi bi-database me-2"></i>All Master Data</a>
         <a class="nav-link" href="{% url 'masters:list' 'clients' %}"><i class="bi bi-people me-2"></i>Clients</a>
+
+        <a class="nav-link" href="{% url 'masters:list' 'currencies' %}"><i class="bi bi-truck-front me-2"></i>Currencies</a>
+        <a class="nav-link" href="{% url 'masters:payment_term_list' %}">
+            <i class="bi bi-calendar-check me-2"></i>
+            Payment Terms
+        </a>
+    <a
+        class="nav-link"
+        href="{% url 'masters:reference_document_list' %}"
+    >
+        <i class="bi bi-file-earmark-text me-2"></i>
+        Ref Documents
+    </a>
+       
         <a class="nav-link" href="{% url 'masters:list' 'suppliers' %}"><i class="bi bi-truck-front me-2"></i>Suppliers</a>
         <a class="nav-link" href="{% url 'masters:list' 'items' %}"><i class="bi bi-box-seam me-2"></i>Items</a>
         <a class="nav-link" href="{% url 'masters:list' 'commodities' %}"><i class="bi bi-basket me-2"></i>Commodities</a>

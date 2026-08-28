@@ -1,43 +1,174 @@
 {% extends "documents/base_document.html" %}
+
 {% block doc_type_label %}INVOICE{% endblock %}
+
+{% block doc_tag %}
+    {% if invoice.status %}
+        {{ invoice.status|upper }}
+    {% else %}
+        OFFICIAL INVOICE
+    {% endif %}
+{% endblock %}
+
 {% block document_content %}
+<style>
+    /* Force WeasyPrint table layout compliance & prevent CSS collapse */
+    table.doc-table {
+        display: table !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 15px !important;
+        table-layout: fixed !important;
+    }
+    table.doc-table tr {
+        display: table-row !important;
+        page-break-inside: avoid !important;
+    }
+    table.doc-table th {
+        display: table-cell !important;
+        background-color: #002B49 !important;
+        color: #ffffff !important;
+        padding: 6px 8px !important;
+        font-size: 10px !important;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+    table.doc-table td {
+        display: table-cell !important;
+        color: #000000 !important;
+        padding: 6px 8px !important;
+        font-size: 10px !important;
+        border-bottom: 1px solid #e0e0e0;
+        vertical-align: top;
+    }
+    .num {
+        text-align: right !important;
+    }
+</style>
+
+<!-- Logistics Table -->
 <table class="doc-table">
-    <thead><tr><th>Commodity</th><th>POL</th><th>POD</th><th>Vessel</th><th>BL Number</th><th>Due Date</th></tr></thead>
+    <thead>
+        <tr>
+            <th style="width: 20%;">COMMODITY</th>
+            <th style="width: 18%;">POL</th>
+            <th style="width: 18%;">POD</th>
+            <th style="width: 14%;">FPOD</th>
+            <th style="width: 15%;">VESSEL</th>
+            <th style="width: 15%;">BL NUMBER</th>
+        </tr>
+    </thead>
     <tbody>
         <tr>
             <td>{{ invoice.commodity|default:"—" }}</td>
             <td>{{ invoice.origin_port|default:"—" }}</td>
             <td>{{ invoice.destination_port|default:"—" }}</td>
+            <td>{{ invoice.final_destination|default:"—" }}</td>
             <td>{{ invoice.vessel|default:"—" }}</td>
             <td>{{ invoice.bl_number|default:"—" }}</td>
-            <td>{{ invoice.due_date|date:"d/m/Y" }}</td>
         </tr>
     </tbody>
 </table>
+
+<!-- Line Items Table -->
 <table class="doc-table">
-    <thead><tr>
-        <th>Description</th><th class="num">Quantity</th><th class="num">Unit Price</th>
-        <th class="num">VAT ({{ currency_symbol }})</th><th class="num">Total Amount ({{ currency_symbol }})</th>
-    </tr></thead>
+    <thead>
+        <tr>
+            <th style="width: 40%;">DESCRIPTION</th>
+            <th class="num" style="width: 15%;">QUANTITY</th>
+            <th class="num" style="width: 15%;">UNIT PRICE</th>
+            <th class="num" style="width: 15%;">VAT ({{ currency_symbol|default:"$" }})</th>
+            <th class="num" style="width: 15%;">TOTAL AMOUNT ({{ currency_symbol|default:"$" }})</th>
+        </tr>
+    </thead>
     <tbody>
         {% for line in items %}
         <tr>
-            <td>{{ line.description }}</td>
-            <td class="num">{{ line.quantity }}</td>
-            <td class="num">{{ line.unit_price|floatformat:2 }}</td>
-            <td class="num">{{ line.vat_amount|floatformat:2 }}</td>
-            <td class="num">{{ line.total_amount|floatformat:2 }}</td>
+            <td>
+                {% if line.item_id and line.item.code %}[{{ line.item.code }}] {% endif %}{{ line.description }}
+            </td>
+            <td class="num">{{ line.quantity|default:0|floatformat:"-2" }}</td>
+            <td class="num">{{ currency_symbol|default:"$" }} {{ line.unit_price|default:0|floatformat:2 }}</td>
+            <td class="num">{{ currency_symbol|default:"$" }} {{ line.vat_amount|default:0|floatformat:2 }}</td>
+            <td class="num">{{ currency_symbol|default:"$" }} {{ line.total_amount|default:0|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5" style="text-align: center; color: #666666;">No Line Items Found</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-{% endblock %}
-{% block totals_block %}
-<table class="totals-table">
-    <tr><td class="label">Subtotal Amount:</td><td class="value">{{ subtotal|floatformat:2 }}</td></tr>
-    <tr><td class="label">VAT:</td><td class="value">{{ vat_total|floatformat:2 }}</td></tr>
-    <tr class="grand"><td class="label">Grand Total ({{ currency_symbol }}):</td><td class="value">{{ grand_total|floatformat:2 }}</td></tr>
-    <tr><td class="label">Paid to date:</td><td class="value">{{ invoice.paid_amount|floatformat:2 }}</td></tr>
-    <tr class="grand"><td class="label">Balance Due ({{ currency_symbol }}):</td><td class="value">{{ invoice.balance_due|floatformat:2 }}</td></tr>
+
+<!-- Totals & Signatures Section -->
+<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+    <tr>
+        <td style="width: 50%; vertical-align: top; font-size: 9.5px; color: #555;">
+            {% if invoice.payment_terms %}
+                <strong>Payment Terms:</strong> {{ invoice.payment_terms }}<br>
+            {% endif %}
+            {% if invoice.due_date %}
+                <strong>Due Date:</strong> {{ invoice.due_date|date:"Y-m-d" }}<br>
+            {% endif %}
+            {% if reference_number %}
+                <strong>Reference:</strong> {{ reference_number }}
+            {% endif %}
+        </td>
+        <td style="width: 50%; vertical-align: top;">
+            <table style="width: 100%; font-size: 10px; border-collapse: collapse;">
+                <tr>
+                    <td style="text-align: right; padding: 4px 0; color: #555; border-bottom: 1px solid #eee;">Subtotal Amount:</td>
+                    <td style="text-align: right; padding: 4px 0; font-weight: bold; border-bottom: 1px solid #eee;" class="num">{{ currency_symbol|default:"$" }} {{ subtotal|default:0|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td style="text-align: right; padding: 4px 0; color: #555; border-bottom: 1px solid #ccc;">VAT Total:</td>
+                    <td style="text-align: right; padding: 4px 0; font-weight: bold; border-bottom: 1px solid #ccc;" class="num">{{ currency_symbol|default:"$" }} {{ vat_total|default:0|floatformat:2 }}</td>
+                </tr>
+                <tr style="border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                    <td style="text-align: right; padding: 5px 0; font-size: 10.5px; font-weight: bold;">Grand Total ({{ currency_code|default:"USD" }}):</td>
+                    <td style="text-align: right; padding: 5px 0; font-size: 10.5px; font-weight: bold;" class="num">{{ currency_symbol|default:"$" }} {{ grand_total|default:0|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td style="text-align: right; padding: 4px 0; color: #555; border-bottom: 1px solid #eee;">Paid to Date:</td>
+                    <td style="text-align: right; padding: 4px 0; font-weight: bold; color: #008751; border-bottom: 1px solid #eee;" class="num">{{ currency_symbol|default:"$" }} {{ invoice.paid_amount|default:0|floatformat:2 }}</td>
+                </tr>
+                <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000;">
+                    <td style="text-align: right; padding: 6px 0; font-size: 11px; font-weight: bold; color: #E31B23;">Balance Due ({{ currency_code|default:"USD" }}):</td>
+                    <td style="text-align: right; padding: 6px 0; font-size: 11px; font-weight: bold; color: #E31B23;" class="num">{{ currency_symbol|default:"$" }} {{ invoice.balance_due|default:0|floatformat:2 }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
 </table>
+
+<!-- Terms & Notes -->
+{% if invoice.notes %}
+<p style="font-size:9.5px; color:#555; margin-top:15px;"><strong>Notes:</strong> {{ invoice.notes|linebreaksbr }}</p>
+{% endif %}
+
+{% if invoice.terms %}
+<p style="font-size:9.5px; color:#555; margin-top:10px;"><strong>Terms & Conditions:</strong> {{ invoice.terms|linebreaksbr }}</p>
+{% endif %}
+
+<!-- Signatures -->
+{% with prepared_by=invoice.prepared_by approved_by=invoice.approved_by %}
+{% if prepared_by or approved_by %}
+<div style="margin-top: 40px; width: 100%;">
+    <table style="width: 100%; text-align: center; font-size: 10px; color: #333;">
+        <tr>
+            <td style="width: 40%; border-top: 1px solid #000; padding-top: 5px;">
+                {{ prepared_by.get_full_name|default:prepared_by.username|default:prepared_by }}<br>
+                <span style="color: #666;">Prepared By</span>
+            </td>
+            <td style="width: 20%;"></td>
+            <td style="width: 40%; border-top: 1px solid #000; padding-top: 5px;">
+                {{ approved_by.get_full_name|default:approved_by.username|default:approved_by }}<br>
+                <span style="color: #666;">Approved By</span>
+            </td>
+        </tr>
+    </table>
+</div>
+{% endif %}
+{% endwith %}
+
 {% endblock %}

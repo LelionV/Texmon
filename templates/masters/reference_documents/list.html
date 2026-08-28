@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h4 class="mb-1">
+                Reference Documents
+            </h4>
+
+            <p class="text-muted mb-0">
+                View supporting documents and their related transactions.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- Search -->
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <form method="get">
+
+                <div class="input-group">
+
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ query }}"
+                        class="form-control"
+                        placeholder="Search reference documents..."
+                    >
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Search
+                    </button>
+
+                    {% if query %}
+
+                        <a
+                            href="{% url 'masters:reference_document_list' %}"
+                            class="btn btn-outline-secondary"
+                        >
+                            Clear
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- Documents -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h6 class="mb-1">
+                        Reference Documents
+                    </h6>
+
+                    <small class="text-muted">
+                        {{ documents|length }} document{{ documents|length|pluralize }}
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>#</th>
+                        <th>Document</th>
+                        <th>Description</th>
+                        <th>Related Transactions</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for document in documents %}
+
+                    <tr>
+
+                        <td>
+                            {{ forloop.counter }}
+                        </td>
+
+
+                        <td>
+
+                            <div class="d-flex align-items-center">
+
+                                <div
+                                    class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3"
+                                    style="width:42px;height:42px;"
+                                >
+                                    <i class="bi bi-file-earmark-text"></i>
+                                </div>
+
+                                <div>
+
+                                    <div class="fw-semibold">
+                                        {{ document.name }}
+                                    </div>
+
+                                    <small class="text-muted">
+                                        Ref #{{ document.pk }}
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+
+                        <td>
+
+                            {% if document.description %}
+
+                                <span>
+                                    {{ document.description|truncatechars:70 }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="text-muted">
+                                    —
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            {% with count=document.quotations.count %}
+
+                                {% if count %}
+
+                                    <span class="badge bg-primary">
+                                        {{ count }}
+                                        quotation{{ count|pluralize }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+                                        No transactions
+                                    </span>
+
+                                {% endif %}
+
+                            {% endwith %}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if document.is_active %}
+
+                                <span class="badge bg-success">
+                                    Active
+                                </span>
+
+                            {% else %}
+
+                                <span class="badge bg-secondary">
+                                    Inactive
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td class="text-end">
+
+                            <a
+                                href="{% url 'masters:reference_document_detail' document.pk %}"
+                                class="btn btn-sm btn-outline-primary"
+                            >
+                                <i class="bi bi-eye me-1"></i>
+                                View
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            class="text-center py-5"
+                        >
+
+                            <i
+                                class="bi bi-file-earmark-text fs-1 text-muted"
+                            ></i>
+
+                            <p class="text-muted mt-2 mb-0">
+                                No reference documents found.
+                            </p>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

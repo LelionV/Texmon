@@ -115,16 +115,12 @@ if os.environ.get("DATABASE_ENGINE") == "postgres":
         }
     }
 else:
-    DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "texmon",
-        "USER": "texmon_user",
-        "PASSWORD": "mSpiaf8criFoz4VVTilixfOcxUFJkzKY",
-        "HOST": "dpg-da5evbjncjis738n6vv0-a",
-        "PORT": "5432",
+ DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
 
 
 # Custom user model - must be set before the first makemigrations/migrate.
