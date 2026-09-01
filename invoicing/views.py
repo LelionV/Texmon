@@ -99,38 +99,77 @@ def _invoice_status_banner(invoice):
         return {"text": "CANCELLED", "level": "danger"}
     return {"text": f"BALANCE DUE: {invoice.currency.symbol}{invoice.balance_due:,.2f}", "level": "info"}
 
-
 @login_required
 def invoice_pdf(request, pk):
     invoice = get_object_or_404(Invoice, pk=pk)
-    from masters.models import CompanyInfo
-    from core.pdf import render_pdf
 
-    html_string = render(request, "invoicing/invoice_pdf.html", {
+    from masters.models import CompanyInfo
+    from core.pdf import render_pdf_template
+
+    context = {
         "invoice": invoice,
+
         "items": invoice.items.select_related("item"),
+
         "company_info": CompanyInfo.get_solo(),
+
         "document_number": invoice.invoice_number,
-        "reference_number": invoice.reference_document.name if invoice.reference_document_id else "",
+
+        "reference_number": (
+            invoice.reference_document.name
+            if invoice.reference_document_id
+            else ""
+        ),
+
         "document_date": invoice.date,
+
         "customer": invoice.client,
+
         "subtotal": invoice.subtotal,
         "vat_total": invoice.vat_total,
         "grand_total": invoice.grand_total,
+
         "currency_symbol": invoice.currency.symbol,
-        "doc_tag": invoice.get_shipment_type_display() if invoice.shipment_type else None,
+        "currency_code": invoice.currency.code,
+
+        "doc_tag": (
+            invoice.get_shipment_type_display()
+            if invoice.shipment_type
+            else None
+        ),
+
         "status_banner": _invoice_status_banner(invoice),
+
         "prepared_by": invoice.created_by,
-    }).content.decode("utf-8")
+    }
 
-    pdf_bytes = render_pdf(html_string)
-    UserActivityLog.log(request.user, UserActivityLog.Action.PRINT,
-                         f"Downloaded PDF for {invoice.invoice_number}", obj=invoice, request=request)
-    response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="{invoice.invoice_number}.pdf"'
+    # Shared PDF renderer automatically provides:
+    # - company_info
+    # - logo_base64
+    pdf_bytes = render_pdf_template(
+        request,
+        "invoicing/invoice_pdf.html",
+        context,
+    )
+
+    UserActivityLog.log(
+        request.user,
+        UserActivityLog.Action.PRINT,
+        f"Downloaded PDF for {invoice.invoice_number}",
+        obj=invoice,
+        request=request,
+    )
+
+    response = HttpResponse(
+        pdf_bytes,
+        content_type="application/pdf",
+    )
+
+    response["Content-Disposition"] = (
+        f'inline; filename="{invoice.invoice_number}.pdf"'
+    )
+
     return response
-
-
 # -- payments -----------------------------------------------------------------
 
 @login_required
@@ -194,26 +233,55 @@ class ReceiptDetailView(LoginRequiredMixin, DetailView):
     template_name = "invoicing/receipt_detail.html"
     context_object_name = "receipt"
 
-
 @login_required
 def receipt_pdf(request, pk):
     receipt = get_object_or_404(Receipt, pk=pk)
+
     from masters.models import CompanyInfo
-    from core.pdf import render_pdf
+    from core.pdf import render_pdf_template
 
-    html_string = render(request, "invoicing/receipt_pdf.html", {
+    context = {
         "receipt": receipt,
-        "invoice": receipt.invoice,
-        "company_info": CompanyInfo.get_solo(),
-        "document_number": receipt.receipt_number,
-        "document_date": receipt.date,
-        "customer": receipt.invoice.client,
-        "currency_symbol": receipt.invoice.currency.symbol,
-    }).content.decode("utf-8")
 
-    pdf_bytes = render_pdf(html_string)
-    UserActivityLog.log(request.user, UserActivityLog.Action.PRINT,
-                         f"Downloaded PDF for {receipt.receipt_number}", obj=receipt, request=request)
-    response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="{receipt.receipt_number}.pdf"'
+        "invoice": receipt.invoice,
+
+        "company_info": CompanyInfo.get_solo(),
+
+        "document_number": receipt.receipt_number,
+
+        "document_date": receipt.date,
+
+        "customer": receipt.invoice.client,
+
+        "currency_symbol": receipt.invoice.currency.symbol,
+
+        "currency_code": receipt.invoice.currency.code,
+    }
+
+    # Shared PDF renderer automatically provides:
+    # - company_info
+    # - logo_base64
+    pdf_bytes = render_pdf_template(
+        request,
+        "invoicing/receipt_pdf.html",
+        context,
+    )
+
+    UserActivityLog.log(
+        request.user,
+        UserActivityLog.Action.PRINT,
+        f"Downloaded PDF for {receipt.receipt_number}",
+        obj=receipt,
+        request=request,
+    )
+
+    response = HttpResponse(
+        pdf_bytes,
+        content_type="application/pdf",
+    )
+
+    response["Content-Disposition"] = (
+        f'inline; filename="{receipt.receipt_number}.pdf"'
+    )
+
     return response

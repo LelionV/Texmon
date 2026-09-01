@@ -23,6 +23,7 @@ from django.urls import reverse
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from accounts.models import UserActivityLog
+from core.pdf import get_logo_base64
 from .forms import QuotationForm, QuotationItemFormSet
 from .models import Quotation
 
@@ -223,39 +224,75 @@ def _quotation_status_banner(quotation):
     if quotation.status == quotation.Status.REJECTED:
         return {"text": "REJECTED", "level": "danger"}
     return None
-
-
 @login_required
 def quotation_pdf(request, pk):
     quotation = get_object_or_404(Quotation, pk=pk)
-    from masters.models import CompanyInfo
-    from core.pdf import render_pdf
 
-    html_string = render(request, "quotations/quotation_pdf.html", {
+    from masters.models import CompanyInfo
+    from core.pdf import render_pdf_template
+
+    context = {
         "quotation": quotation,
         "items": quotation.items.select_related("item"),
         "company_info": CompanyInfo.get_solo(),
+
         "document_number": quotation.quotation_number,
-        "reference_number": quotation.reference_document.name if quotation.reference_document_id else "",
+
+        "reference_number": (
+            quotation.reference_document.name
+            if quotation.reference_document_id
+            else ""
+        ),
+
         "document_date": quotation.date,
         "customer": quotation.client,
+
         "subtotal": quotation.subtotal,
         "vat_total": quotation.vat_total,
         "grand_total": quotation.grand_total,
+
         "currency_symbol": quotation.currency.symbol,
-        "doc_tag": quotation.get_shipment_type_display() if quotation.shipment_type else None,
+        "currency_code": quotation.currency.code,
+
+        "doc_tag": (
+            quotation.get_shipment_type_display()
+            if quotation.shipment_type
+            else None
+        ),
+
         "status_banner": _quotation_status_banner(quotation),
+
         "prepared_by": quotation.created_by,
         "approved_by": quotation.approved_by,
-    }).content.decode("utf-8")
+    }
 
-    pdf_bytes = render_pdf(html_string)
-    UserActivityLog.log(request.user, UserActivityLog.Action.PRINT,
-                         f"Downloaded PDF for {quotation.quotation_number}", obj=quotation, request=request)
-    response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="{quotation.quotation_number}.pdf"'
+    # Shared PDF renderer automatically provides:
+    # - company_info
+    # - logo_base64
+    pdf_bytes = render_pdf_template(
+        request,
+        "quotations/quotation_pdf.html",
+        context,
+    )
+
+    UserActivityLog.log(
+        request.user,
+        UserActivityLog.Action.PRINT,
+        f"Downloaded PDF for {quotation.quotation_number}",
+        obj=quotation,
+        request=request,
+    )
+
+    response = HttpResponse(
+        pdf_bytes,
+        content_type="application/pdf",
+    )
+
+    response["Content-Disposition"] = (
+        f'inline; filename="{quotation.quotation_number}.pdf"'
+    )
+
     return response
-
 
 # -- HTMX: dynamic empty formset row -----------------------------------------
 

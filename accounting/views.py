@@ -53,24 +53,51 @@ class StatementDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailVie
 
 
 @login_required
-@permission_required("accounting.view_statementofaccount", raise_exception=True)
+@permission_required(
+    "accounting.view_statementofaccount",
+    raise_exception=True,
+)
 def statement_pdf(request, pk):
-    statement = get_object_or_404(StatementOfAccount, pk=pk)
+    statement = get_object_or_404(
+        StatementOfAccount,
+        pk=pk,
+    )
+
     from masters.models import CompanyInfo
-    from core.pdf import render_pdf
+    from core.pdf import render_pdf_template
 
-    html_string = render(request, "accounting/statement_pdf.html", {
+    context = {
         "statement": statement,
-        "lines": statement.get_lines(),
-        "company_info": CompanyInfo.get_solo(),
-        "document_number": statement.statement_number,
-        "document_date": statement.date_to,
-        "customer": statement.client,
-    }).content.decode("utf-8")
 
-    pdf_bytes = render_pdf(html_string)
-    response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="{statement.statement_number}.pdf"'
+        "lines": statement.get_lines(),
+
+        "company_info": CompanyInfo.get_solo(),
+
+        "document_number": statement.statement_number,
+
+        "document_date": statement.date_to,
+
+        "customer": statement.client,
+    }
+
+    # Shared PDF renderer automatically provides:
+    # - company_info
+    # - logo_base64
+    pdf_bytes = render_pdf_template(
+        request,
+        "accounting/statement_pdf.html",
+        context,
+    )
+
+    response = HttpResponse(
+        pdf_bytes,
+        content_type="application/pdf",
+    )
+
+    response["Content-Disposition"] = (
+        f'inline; filename="{statement.statement_number}.pdf"'
+    )
+
     return response
 
 

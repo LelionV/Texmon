@@ -24,6 +24,7 @@ from accounts.models import UserActivityLog
 from quotations.models import Quotation
 from .forms import ProformaInvoiceForm, ProformaInvoiceItemFormSet
 from .models import ProformaInvoice
+from core.pdf import render_pdf_template
 
 BROAD_VISIBILITY_GROUPS = {
     "Administrator", "Sales Manager", "Finance Officer", "Accountant", "Management Viewer",
@@ -181,34 +182,77 @@ def _proforma_status_banner(pi):
         return {"text": "REJECTED", "level": "danger"}
     return None
 
-
 @login_required
 def proforma_pdf(request, pk):
     pi = get_object_or_404(ProformaInvoice, pk=pk)
-    from masters.models import CompanyInfo
-    from core.pdf import render_pdf
 
-    html_string = render(request, "proforma/proforma_pdf.html", {
+    from masters.models import CompanyInfo
+    from core.pdf import render_pdf_template
+
+    company_info = CompanyInfo.get_solo()
+
+    context = {
         "proforma": pi,
+
         "items": pi.items.select_related("item"),
-        "company_info": CompanyInfo.get_solo(),
+
+        "company_info": company_info,
+
         "document_number": pi.pi_number,
-        "reference_number": pi.reference_document.name if pi.reference_document_id else "",
+
+        "reference_number": (
+            pi.reference_document.name
+            if pi.reference_document_id
+            else ""
+        ),
+
         "document_date": pi.date,
+
         "customer": pi.client,
+
         "subtotal": pi.subtotal,
         "vat_total": pi.vat_total,
         "grand_total": pi.grand_total,
+
         "currency_symbol": pi.currency.symbol,
-        "doc_tag": pi.get_shipment_type_display() if pi.shipment_type else None,
+        "currency_code": pi.currency.code,
+
+        "doc_tag": (
+            pi.get_shipment_type_display()
+            if pi.shipment_type
+            else None
+        ),
+
         "status_banner": _proforma_status_banner(pi),
+
         "prepared_by": pi.created_by,
         "approved_by": pi.approved_by,
-    }).content.decode("utf-8")
+    }
 
-    pdf_bytes = render_pdf(html_string)
-    UserActivityLog.log(request.user, UserActivityLog.Action.PRINT,
-                         f"Downloaded PDF for {pi.pi_number}", obj=pi, request=request)
-    response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="{pi.pi_number}.pdf"'
+    # Shared PDF renderer automatically adds:
+    # - company_info
+    # - logo_base64
+    pdf_bytes = render_pdf_template(
+        request,
+        "proforma/proforma_pdf.html",
+        context,
+    )
+
+    UserActivityLog.log(
+        request.user,
+        UserActivityLog.Action.PRINT,
+        f"Downloaded PDF for {pi.pi_number}",
+        obj=pi,
+        request=request,
+    )
+
+    response = HttpResponse(
+        pdf_bytes,
+        content_type="application/pdf",
+    )
+
+    response["Content-Disposition"] = (
+        f'inline; filename="{pi.pi_number}.pdf"'
+    )
+
     return response

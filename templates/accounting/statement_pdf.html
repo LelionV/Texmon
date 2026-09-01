@@ -1,6 +1,6 @@
 {% extends "documents/base_document.html" %}
 
-{% block doc_type_label %}SOA{% endblock %}
+{% block doc_type_label %}Staement of Account{% endblock %}
 
 {% block document_content %}
 <style>
@@ -81,27 +81,8 @@
 <!-- Statement Header Block -->
 <table class="w-100" style="margin-bottom: 15px; border-collapse: collapse;">
     <tr>
-        <td style="width: 60%;" class="valign-top">
-            <div class="info-block-title">Statement For</div>
-            <div style="font-size: 9pt; color: #2D3748; line-height: 1.4;">
-                {% if customer and customer.company_name %}
-                    <strong>{{ customer.company_name }}</strong><br>
-                {% elif customer and customer.name %}
-                    <strong>{{ customer.name }}</strong><br>
-                {% elif customer %}
-                    <strong>{{ customer }}</strong><br>
-                {% else %}
-                    <strong>—</strong><br>
-                {% endif %}
-                
-                {% if customer %}
-                    {{ customer.billing_address|default:customer.address|default:""|linebreaksbr }}
-                {% endif %}
-            </div>
-        </td>
         <td style="width: 40%;" class="valign-top">
             <div style="font-size: 8.5pt; color: #4A5568; line-height: 1.6; text-align: right;">
-                <span class="meta-label">Statement No:</span> {{ document_number|default:"—" }}<br>
                 <span class="meta-label">Period:</span> {{ statement.date_from|date:"d M Y" }} to {{ statement.date_to|date:"d M Y" }}
             </div>
         </td>
@@ -168,7 +149,7 @@
     <table class="w-100" style="border-collapse: collapse;">
         <tr>
             <td style="width: 60%; vertical-align: middle;">
-                <span style="font-size: 8pt; text-transform: uppercase; color: #4A5568; font-weight: 700; letter-spacing: 0.5px; display: block;">Account Summary</span>
+                <span style="font-size: 8pt; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: block;">Account Summary</span>
                 <span style="font-size: 11pt; font-weight: bold; color: #002B49;">Closing Balance Due</span>
             </td>
             <td style="width: 40%; text-align: right; vertical-align: middle;">
