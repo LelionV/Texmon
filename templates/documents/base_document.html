@@ -18,11 +18,6 @@
             --border-color: #e2e8f0;
         }
 
-        /* =========================================================
-            A4 PAGE (Zero out default page margins so header/footer 
-            can handle exact alignment with the content body)
-            ========================================================= */
-
         @page {
             size: A4;
             margin: 0;
@@ -32,7 +27,8 @@
             box-sizing: border-box;
         }
 
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
         }
@@ -40,7 +36,7 @@
         body {
             font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: var(--text-dark);
-            font-size: 9pt; /* Increased font size */
+            font-size: 9pt;
             line-height: 1.35;
             background: #ffffff;
             -webkit-print-color-adjust: exact;
@@ -52,22 +48,37 @@
             border-collapse: collapse;
         }
 
-        .valign-top { vertical-align: top; }
-        .valign-middle { vertical-align: middle; }
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
+        .valign-top {
+            vertical-align: top;
+        }
+
+        .valign-middle {
+            vertical-align: middle;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* =========================================================
+           A4 DOCUMENT
+           ========================================================= */
 
         .document-page {
             width: 210mm;
             min-height: 297mm;
             margin: 0 auto;
             position: relative;
-            padding: 4mm 12mm; /* Perfectly aligns header, body items, and footer */
+            padding: 4mm 12mm;
         }
 
         /* =========================================================
-            FIXED HEADER 
-            ========================================================= */
+           FIXED HEADER
+           ========================================================= */
 
         .running-header-container {
             position: fixed;
@@ -94,7 +105,10 @@
             vertical-align: top;
         }
 
-        /* LOGO */
+        /* =========================================================
+           LOGO
+           ========================================================= */
+
         .logo-cell {
             width: 13%;
             vertical-align: top !important;
@@ -103,8 +117,8 @@
 
         .brand-logo {
             display: block;
-            max-width: 90px;
-            max-height: 90px;
+            max-width: 92px;
+            max-height: 92px;
             width: auto;
             height: auto;
             margin: 0;
@@ -112,7 +126,10 @@
             object-fit: contain;
         }
 
-        /* COMPANY INFORMATION */
+        /* =========================================================
+           COMPANY INFORMATION
+           ========================================================= */
+
         .company-cell {
             width: 53%;
             padding-left: 2px !important;
@@ -123,7 +140,7 @@
         .company-name {
             color: var(--primary-blue);
             font-size: 13pt;
-            font-weight: 800; /* Extra bold company name */
+            font-weight: 800;
             margin: 0 0 1px 0;
             padding: 0;
             line-height: 1.1;
@@ -143,13 +160,21 @@
 
         .company-details {
             color: var(--text-muted);
-            font-size: 7.5pt; /* Increased font size */
-            line-height: 1.25;
+            font-size: 9pt;
+            line-height: 1.4;
             margin: 0;
             padding: 0;
         }
 
-        /* DOCUMENT INFORMATION */
+        .company-details strong {
+            font-weight: 700;
+            color: #333333;
+        }
+
+        /* =========================================================
+           DOCUMENT INFORMATION
+           ========================================================= */
+
         .document-meta-cell {
             width: 34%;
             vertical-align: top !important;
@@ -221,14 +246,18 @@
         }
 
         /* =========================================================
-            MAIN DOCUMENT BODY 
-            ========================================================= */
+           MAIN DOCUMENT BODY
+           ========================================================= */
 
         .document-body {
             width: 100%;
-            padding-top: 30mm; /* Adjusted gap for slightly larger header text */
+            padding-top: 34mm;
             margin: 0;
         }
+
+        /* =========================================================
+           CUSTOMER INFORMATION
+           ========================================================= */
 
         .info-table {
             width: 100%;
@@ -247,7 +276,7 @@
             padding: 6px 10px;
             min-width: 240px;
             max-width: 100%;
-            font-size: 8.5pt; /* Increased font size */
+            font-size: 8.5pt;
         }
 
         .info-block-title {
@@ -260,7 +289,10 @@
             line-height: 1.2;
         }
 
-        .customer-card strong { font-weight: 600; }
+        .customer-card strong {
+            font-weight: 600;
+        }
+
         .meta-label {
             color: var(--text-muted);
             font-weight: 600;
@@ -273,6 +305,10 @@
             padding: 0;
         }
 
+        /* =========================================================
+           ITEMS TABLE
+           ========================================================= */
+
         .items-table {
             width: 100%;
             margin-top: 0;
@@ -281,8 +317,13 @@
             page-break-inside: auto;
         }
 
-        .items-table thead { display: table-header-group; }
-        .items-table tr { page-break-inside: avoid; }
+        .items-table thead {
+            display: table-header-group;
+        }
+
+        .items-table tr {
+            page-break-inside: avoid;
+        }
 
         .items-table th {
             background-color: var(--bg-light);
@@ -300,12 +341,21 @@
         .items-table td {
             padding: 5px 6px;
             border-bottom: 1px solid var(--border-color);
-            font-size: 9pt; /* Increased font size */
+            font-size: 9pt;
             font-weight: 400;
         }
 
-        .items-table tr:nth-child(even) td { background-color: #ffffff; }
-        .items-table small { font-size: 7.5pt; }
+        .items-table tr:nth-child(even) td {
+            background-color: #ffffff;
+        }
+
+        .items-table small {
+            font-size: 7.5pt;
+        }
+
+        /* =========================================================
+           NOTES + TOTALS
+           ========================================================= */
 
         .notes-totals-table {
             width: 100%;
@@ -322,7 +372,7 @@
 
         .totals-table td {
             padding: 4px 6px;
-            font-size: 9pt; /* Increased font size */
+            font-size: 9pt;
             border-bottom: none;
         }
 
@@ -344,6 +394,10 @@
             background-color: var(--bg-light);
             padding: 6px;
         }
+
+        /* =========================================================
+           FIXED BOTTOM SECTION
+           ========================================================= */
 
         .bottom-section {
             position: fixed;
@@ -380,10 +434,21 @@
             table-layout: fixed;
         }
 
-        .signatures-table td { vertical-align: top; }
-        .signature-prepared { width: 46%; }
-        .signature-spacer { width: 8%; }
-        .signature-approved { width: 46%; }
+        .signatures-table td {
+            vertical-align: top;
+        }
+
+        .signature-prepared {
+            width: 46%;
+        }
+
+        .signature-spacer {
+            width: 8%;
+        }
+
+        .signature-approved {
+            width: 46%;
+        }
 
         .sig-line {
             border-top: 1px solid #aaaaaa;
@@ -393,6 +458,10 @@
             line-height: 1.2;
             text-align: center;
         }
+
+        /* =========================================================
+           PAGE NUMBER
+           ========================================================= */
 
         .page-number {
             position: absolute;
@@ -408,6 +477,10 @@
         .page-number::after {
             content: "Page " counter(page) " of " counter(pages);
         }
+
+        /* =========================================================
+           SCREEN PREVIEW
+           ========================================================= */
 
         @media screen {
             body {
@@ -427,10 +500,15 @@
 
 <div class="document-page">
 
-    <!-- FIXED HEADER -->
+    <!-- =========================================================
+         FIXED HEADER
+         ========================================================= -->
+
     <div class="running-header-container">
+
         <table class="header-table">
             <tr>
+
                 <!-- LOGO -->
                 <td class="logo-cell">
                     {% if logo_base64 %}
@@ -444,28 +522,42 @@
 
                 <!-- COMPANY INFORMATION -->
                 <td class="company-cell">
+
                     <div class="company-name">
                         TEXMON LOGISTICS LIMITED
                     </div>
+
                     <div class="company-tagline">
                         Professionally Delivering Excellence
                     </div>
+
                     <div class="company-details">
                         Fidel Odinga Road off Nyali Links Road<br>
                         P.O BOX 42627 80100, Mombasa<br>
-                        <strong>Contact:</strong> (+254) 795 616 827 | <strong>Email:</strong><br> enquiries@texmonlogistics.co.ke<br>
+
+                        <strong>Contact:</strong>
+                        (+254) 795 616 827
+                        |
+                        <strong>Email:</strong>
+                        enquiries@texmonlogistics.co.ke<br>
+
                         {% if company_info and company_info.tax_id %}
-                            <strong>Tax ID:</strong> {{ company_info.tax_id }}
+                            <strong>Tax ID:</strong>
+                            {{ company_info.tax_id }}
                         {% elif tax_id %}
-                            <strong>Tax ID:</strong> {{ tax_id }}
+                            <strong>Tax ID:</strong>
+                            {{ tax_id }}
                         {% else %}
-                            <strong>Tax ID:</strong> P051812471I
+                            <strong>Tax ID:</strong>
+                            P051812471I
                         {% endif %}
                     </div>
+
                 </td>
 
                 <!-- DOCUMENT INFORMATION -->
                 <td class="document-meta-cell">
+
                     <div class="doc-title-right">
                         {% block doc_type_label %}
                             Quotation
@@ -481,163 +573,405 @@
                     {% endif %}
 
                     <table class="doc-meta-table">
+
                         <tr>
-                            <td class="doc-meta-label">Quote No:</td>
-                            <td class="doc-meta-value doc-number">{{ document_number }}</td>
+                            <td class="doc-meta-label">
+                                Quote No:
+                            </td>
+                            <td class="doc-meta-value doc-number">
+                                {{ document_number }}
+                            </td>
                         </tr>
+
                         {% if reference_number %}
                         <tr>
-                            <td class="doc-meta-label">Ref No:</td>
-                            <td class="doc-meta-value">{{ reference_number }}</td>
+                            <td class="doc-meta-label">
+                                Ref No:
+                            </td>
+                            <td class="doc-meta-value">
+                                {{ reference_number }}
+                            </td>
                         </tr>
                         {% endif %}
+
                         <tr>
-                            <td class="doc-meta-label">Date:</td>
-                            <td class="doc-meta-value">{{ document_date|date:"d/m/Y" }}</td>
+                            <td class="doc-meta-label">
+                                Date:
+                            </td>
+                            <td class="doc-meta-value">
+                                {{ document_date|date:"d/m/Y" }}
+                            </td>
                         </tr>
+
                     </table>
+
                 </td>
+
             </tr>
         </table>
 
         <div class="header-stripe"></div>
+
     </div>
 
-    <!-- MAIN DOCUMENT BODY -->
+
+    <!-- =========================================================
+         MAIN DOCUMENT BODY
+         ========================================================= -->
+
     <div class="document-body">
 
         <!-- CUSTOMER INFORMATION -->
+
         <table class="w-100 info-table">
+
             <tr>
-                <td style="width: 60%;" class="valign-top">
+
+                <td
+                    style="width: 60%;"
+                    class="valign-top"
+                >
+
                     <div class="customer-card">
-                        <div class="#">Customer Details</div>
+
+                        <div class="#">
+                            Customer Details
+                        </div>
+
                         <div>
-                            <strong>{{ customer.name|default:customer }}</strong><br>
+
+                            <strong>
+                                {{ customer.name|default:customer }}
+                            </strong>
+
+                            <br>
+
                             {% if customer.address %}
                                 {{ customer.address|linebreaksbr }}<br>
                             {% endif %}
+
                             {% if customer.email %}
                                 {{ customer.email }}<br>
                             {% endif %}
+
                             {% if customer.phone %}
                                 {{ customer.phone }}<br>
                             {% endif %}
-                            <div style="margin-top: 4px; padding-top: 3px; border-top: 1px solid #edf2f7;">
-                                <span class="meta-label">Attention To:</span>
-                                <strong>{{ quotation.attention_to|default:customer.contact_person|default:"N/A" }}</strong>
+
+                            <div
+                                style="
+                                    margin-top: 4px;
+                                    padding-top: 3px;
+                                    border-top: 1px solid #edf2f7;
+                                "
+                            >
+
+                                <span class="meta-label">
+                                    Attention To:
+                                </span>
+
+                                <strong>
+                                    {{ quotation.attention_to|default:customer.contact_person|default:"N/A" }}
+                                </strong>
+
                             </div>
+
                         </div>
+
                     </div>
+
                 </td>
+
                 <td style="width: 40%;"></td>
+
             </tr>
+
         </table>
 
-        <!-- DOCUMENT CONTENT -->
+
+        <!-- =====================================================
+             DOCUMENT CONTENT
+             ===================================================== -->
+
         <div class="content-wrapper">
+
             {% block document_content %}
+
                 <table class="w-100 items-table">
+
                     <thead>
+
                         <tr>
-                            <th style="width: 5%;" class="text-center">#</th>
-                            <th>Description</th>
-                            <th style="width: 12%;" class="text-right">Qty</th>
-                            <th style="width: 18%;" class="text-right">Unit Price</th>
-                            <th style="width: 20%;" class="text-right">Amount</th>
+
+                            <th
+                                style="width: 5%;"
+                                class="text-center"
+                            >
+                                #
+                            </th>
+
+                            <th>
+                                Description
+                            </th>
+
+                            <th
+                                style="width: 12%;"
+                                class="text-right"
+                            >
+                                Qty
+                            </th>
+
+                            <th
+                                style="width: 18%;"
+                                class="text-right"
+                            >
+                                Unit Price
+                            </th>
+
+                            <th
+                                style="width: 20%;"
+                                class="text-right"
+                            >
+                                Amount
+                            </th>
+
                         </tr>
+
                     </thead>
+
                     <tbody>
+
                         {% for item in items %}
+
                         <tr>
-                            <td class="text-center">{{ forloop.counter }}</td>
+
+                            <td class="text-center">
+                                {{ forloop.counter }}
+                            </td>
+
                             <td>
-                                <strong>{{ item.name|default:item.description }}</strong>
+
+                                <strong>
+                                    {{ item.name|default:item.description }}
+                                </strong>
+
                                 {% if item.details %}
                                     <br>
-                                    <small style="color: #718096;">{{ item.details }}</small>
+                                    <small style="color: #718096;">
+                                        {{ item.details }}
+                                    </small>
                                 {% endif %}
+
                             </td>
-                            <td class="text-right">{{ item.quantity }}</td>
-                            <td class="text-right">{{ currency_symbol }} {{ item.unit_price|floatformat:2 }}</td>
-                            <td class="text-right">{{ currency_symbol }} {{ item.total|default:item.amount|floatformat:2 }}</td>
+
+                            <td class="text-right">
+                                {{ item.quantity }}
+                            </td>
+
+                            <td class="text-right">
+                                {{ currency_symbol }}
+                                {{ item.unit_price|floatformat:2 }}
+                            </td>
+
+                            <td class="text-right">
+                                {{ currency_symbol }}
+                                {{ item.total|default:item.amount|floatformat:2 }}
+                            </td>
+
                         </tr>
+
                         {% empty %}
+
                         <tr>
-                            <td colspan="5" class="text-center" style="padding: 15px; color: #A0AEC0;">
+
+                            <td
+                                colspan="5"
+                                class="text-center"
+                                style="
+                                    padding: 15px;
+                                    color: #A0AEC0;
+                                "
+                            >
                                 No line items found.
                             </td>
+
                         </tr>
+
                         {% endfor %}
+
                     </tbody>
+
                 </table>
+
 
                 <!-- NOTES + TOTALS -->
+
                 <table class="notes-totals-table">
+
                     <tr>
-                        <td style="width: 50%;" class="valign-top">
+
+                        <td
+                            style="width: 50%;"
+                            class="valign-top"
+                        >
+
                             {% if quotation.notes %}
-                                <div class="info-block-title" style="background: none; padding-left: 0;">
+
+                                <div
+                                    class="info-block-title"
+                                    style="
+                                        background: none;
+                                        padding-left: 0;
+                                    "
+                                >
                                     Notes / Terms
                                 </div>
-                                <div style="font-size: 8pt; color: #4A5568;">
+
+                                <div
+                                    style="
+                                        font-size: 8pt;
+                                        color: #4A5568;
+                                    "
+                                >
                                     {{ quotation.notes|linebreaksbr }}
                                 </div>
+
                             {% endif %}
+
                         </td>
-                        <td style="width: 50%;" class="valign-top">
+
+                        <td
+                            style="width: 50%;"
+                            class="valign-top"
+                        >
+
                             <table class="totals-table">
+
                                 <tr>
-                                    <td class="meta-label">Subtotal:</td>
-                                    <td class="text-right">{{ currency_symbol }} {{ subtotal|floatformat:2 }}</td>
+
+                                    <td class="meta-label">
+                                        Subtotal:
+                                    </td>
+
+                                    <td class="text-right">
+                                        {{ currency_symbol }}
+                                        {{ subtotal|floatformat:2 }}
+                                    </td>
+
                                 </tr>
+
                                 {% if vat_total %}
+
                                 <tr>
-                                    <td class="meta-label">VAT / Tax:</td>
-                                    <td class="text-right">{{ currency_symbol }} {{ vat_total|floatformat:2 }}</td>
+
+                                    <td class="meta-label">
+                                        VAT / Tax:
+                                    </td>
+
+                                    <td class="text-right">
+                                        {{ currency_symbol }}
+                                        {{ vat_total|floatformat:2 }}
+                                    </td>
+
                                 </tr>
+
                                 {% endif %}
+
                                 <tr class="grand-total-row">
-                                    <td>Total ({{ currency_code }}):</td>
-                                    <td class="text-right">{{ currency_symbol }} {{ grand_total|floatformat:2 }}</td>
+
+                                    <td>
+                                        Total ({{ currency_code }}):
+                                    </td>
+
+                                    <td class="text-right">
+                                        {{ currency_symbol }}
+                                        {{ grand_total|floatformat:2 }}
+                                    </td>
+
                                 </tr>
+
                             </table>
+
                         </td>
+
                     </tr>
+
                 </table>
+
             {% endblock %}
+
         </div>
+
     </div>
 
-    <!-- FIXED BOTTOM SECTION -->
+
+    <!-- =========================================================
+         FIXED BOTTOM SECTION
+         ========================================================= -->
+
     <div class="bottom-section">
+
         {% if prepared_by or approved_by %}
+
             <div class="signatures-wrapper">
+
                 <div class="signature-top-line"></div>
+
                 <table class="signatures-table">
+
                     <tr>
+
                         <td class="signature-prepared">
+
                             {% if prepared_by %}
+
                                 <div class="sig-line">
-                                    <strong>Prepared By:</strong>
+
+                                    <strong>
+                                        Prepared By:
+                                    </strong>
+
                                     {{ prepared_by.get_full_name|default:prepared_by }}
+
                                 </div>
+
                             {% endif %}
+
                         </td>
+
                         <td class="signature-spacer"></td>
+
                         <td class="signature-approved">
+
                             {% if approved_by %}
+
                                 <div class="sig-line">
-                                    <strong>Approved By:</strong>
+
+                                    <strong>
+                                        Approved By:
+                                    </strong>
+
                                     {{ approved_by.get_full_name|default:approved_by }}
+
                                 </div>
+
                             {% endif %}
+
                         </td>
+
                     </tr>
+
                 </table>
+
             </div>
+
         {% endif %}
+
+
+        <!-- PAGE NUMBER -->
+
         <div class="page-number"></div>
+
     </div>
 
 </div>
