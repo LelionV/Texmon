@@ -1,22 +1,237 @@
 {% extends "documents/base_document.html" %}
+
 {% block doc_type_label %}RECEIPT{% endblock %}
-{% block document_content %}
-<table class="doc-table">
-    <thead><tr><th>Invoice</th><th class="num">Amount Received ({{ currency_symbol }})</th></tr></thead>
-    <tbody>
-        <tr>
-            <td>{{ invoice.invoice_number }}</td>
-            <td class="num">{{ receipt.amount|floatformat:2 }}</td>
-        </tr>
-    </tbody>
-</table>
-<p style="font-size:10.5px; margin-top:10px;">
-    Received with thanks from <strong>{{ invoice.client.company_name }}</strong>
-    against invoice {{ invoice.invoice_number }}.
-</p>
+
+{% block doc_tag %}
+    {% if receipt.status %}
+        {{ receipt.status|upper }}
+    {% else %}
+        OFFICIAL RECEIPT
+    {% endif %}
 {% endblock %}
-{% block totals_block %}
-<table class="totals-table">
-    <tr class="grand"><td class="label">Amount Received ({{ currency_symbol }}):</td><td class="value">{{ receipt.amount|floatformat:2 }}</td></tr>
+
+{% block document_content %}
+
+<style>
+    /* =========================================================
+        RECEIPT PDF TABLES & PERFECT COLUMN ALIGNMENT FIX
+        ========================================================= */
+
+    .receipt-wrapper {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    table.sync-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        table-layout: fixed !important;
+        margin: 0 0 15px 0 !important;
+    }
+
+    table.sync-table thead {
+        display: table-header-group !important;
+    }
+
+    table.sync-table tbody {
+        display: table-row-group !important;
+    }
+
+    table.sync-table tr {
+        display: table-row !important;
+        page-break-inside: avoid !important;
+    }
+
+    table.sync-table th {
+        display: table-cell !important;
+        background-color: #0f2c59 !important;
+        color: #ffffff !important;
+        padding: 6px 8px !important;
+        font-size: 8pt !important;
+        line-height: 1.2 !important;
+        text-transform: uppercase;
+        font-weight: bold;
+        vertical-align: middle !important;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    table.sync-table td {
+        display: table-cell !important;
+        color: #2b2d42 !important;
+        padding: 6px 8px !important;
+        font-size: 8pt !important;
+        line-height: 1.25 !important;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: top !important;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .num {
+        text-align: right !important;
+        white-space: nowrap !important;
+    }
+
+    /* =========================================================
+        RECEIPT SUMMARY
+        ========================================================= */
+
+    .receipt-summary {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .receipt-summary > tbody > tr > td {
+        vertical-align: top;
+    }
+
+    .receipt-details {
+        width: 50%;
+        padding-right: 15px;
+        font-size: 7.5pt;
+        line-height: 1.5;
+        color: #555555;
+        vertical-align: top;
+    }
+
+    .receipt-totals {
+        width: 50%;
+        vertical-align: top;
+    }
+
+    .receipt-totals-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 8pt;
+    }
+
+    .receipt-totals-table td {
+        padding: 4px 0;
+        vertical-align: middle;
+    }
+
+    .total-label {
+        text-align: right;
+        color: #555555;
+        padding-right: 8px !important;
+    }
+
+    .total-value {
+        text-align: right;
+        font-weight: bold;
+        white-space: nowrap;
+    }
+
+    .grand-total-row td {
+        border-top: 2px solid #000000;
+        border-bottom: 2px solid #000000;
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        font-size: 9.5pt;
+        font-weight: bold;
+        color: #0f2c59;
+    }
+
+    .receipt-notes {
+        margin-top: 15px;
+        font-size: 7.5pt;
+        line-height: 1.45;
+        color: #555555;
+        page-break-inside: avoid;
+    }
+</style>
+
+<div class="receipt-wrapper">
+
+    <!-- =========================================================
+         TABLE 1: RECEIPT ALLOCATION / LINE ITEMS
+         ========================================================= -->
+
+    <table class="sync-table">
+        <colgroup>
+            <col style="width: 60%;">
+            <col style="width: 40%;">
+        </colgroup>
+        <thead>
+            <tr>
+                <th>Invoice</th>
+                <th class="num">Amount Received ({{ currency_symbol|default:"$" }})</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ invoice.invoice_number|default:"—" }}</td>
+                <td class="num">{{ currency_symbol|default:"$" }} {{ receipt.amount|default:0|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<!-- Acknowledgment Text -->
+<p style="font-size: 8pt; line-height: 1.5; color: #555555; margin-top: 10px; margin-bottom: 15px;">
+</p>
+
+<!-- =========================================================
+     RECEIPT DETAILS + TOTALS
+     ========================================================= -->
+
+<table class="receipt-summary">
+    <tr>
+        <!-- LEFT: RECEIPT DETAILS -->
+        <td class="receipt-details">
+            {% if receipt.payment_method %}
+                <strong>Payment Method:</strong> {{ receipt.payment_method }}<br>
+            {% endif %}
+            {% if receipt.payment_date %}
+                <strong>Payment Date:</strong> {{ receipt.payment_date|date:"Y-m-d" }}<br>
+            {% endif %}
+            {% if reference_number %}
+                <strong>Reference:</strong> {{ reference_number }}
+            {% endif %}
+        </td>
+
+        <!-- RIGHT: TOTALS -->
+        <td class="receipt-totals">
+            <table class="receipt-totals-table">
+                <tr class="grand-total-row">
+                    <td class="total-label">Amount Received ({{ currency_code|default:"USD" }}):</td>
+                    <td class="total-value">{{ currency_symbol|default:"$" }} {{ receipt.amount|default:0|floatformat:2 }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
 </table>
+
+{% if receipt.notes %}
+<div class="receipt-notes">
+    <strong>Notes:</strong><br>
+    {{ receipt.notes|linebreaksbr }}
+</div>
+{% endif %}
+
+<!-- Signatures -->
+{% with prepared_by=receipt.prepared_by approved_by=receipt.approved_by %}
+{% if prepared_by or approved_by %}
+<div style="margin-top: 40px; width: 100%; page-break-inside: avoid;">
+    <table style="width: 100%; text-align: center; font-size: 8pt; color: #333;">
+        <tr>
+            <td style="width: 40%; border-top: 1px solid #000; padding-top: 5px;">
+                {{ prepared_by.get_full_name|default:prepared_by.username|default:prepared_by }}<br>
+                <span style="color: #666;">Prepared By</span>
+            </td>
+            <td style="width: 20%;"></td>
+            <td style="width: 40%; border-top: 1px solid #000; padding-top: 5px;">
+                {{ approved_by.get_full_name|default:approved_by.username|default:approved_by }}<br>
+                <span style="color: #666;">Approved By</span>
+            </td>
+        </tr>
+    </table>
+</div>
+{% endif %}
+{% endwith %}
+
 {% endblock %}
