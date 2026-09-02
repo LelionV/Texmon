@@ -108,7 +108,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "texmon",
         "USER": "texmon_user",
-        "PASSWORD": "Tahapay&17"
+        "PASSWORD": "Tahapay&17",
         # "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
         
         "HOST": "dpg-da5evbjncjis738n6vv0-a",
