@@ -40,8 +40,8 @@
         body {
             font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: var(--text-dark);
-            font-size: 8pt;
-            line-height: 1.3;
+            font-size: 9pt; /* Increased font size */
+            line-height: 1.35;
             background: #ffffff;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -122,8 +122,8 @@
 
         .company-name {
             color: var(--primary-blue);
-            font-size: 12pt;
-            font-weight: 700;
+            font-size: 13pt;
+            font-weight: 800; /* Extra bold company name */
             margin: 0 0 1px 0;
             padding: 0;
             line-height: 1.1;
@@ -133,7 +133,7 @@
 
         .company-tagline {
             color: #666666;
-            font-size: 7pt;
+            font-size: 7.5pt;
             font-style: italic;
             font-weight: 500;
             margin: 0 0 2px 0;
@@ -143,8 +143,8 @@
 
         .company-details {
             color: var(--text-muted);
-            font-size: 6.5pt;
-            line-height: 1.2;
+            font-size: 7.5pt; /* Increased font size */
+            line-height: 1.25;
             margin: 0;
             padding: 0;
         }
@@ -157,7 +157,7 @@
         }
 
         .doc-title-right {
-            font-size: 15pt;
+            font-size: 16pt;
             font-weight: 800;
             color: var(--primary-blue);
             text-transform: uppercase;
@@ -169,7 +169,7 @@
 
         .doc-tag {
             display: inline-block;
-            font-size: 6pt;
+            font-size: 6.5pt;
             font-weight: 700;
             background: var(--primary-blue);
             color: #ffffff;
@@ -182,7 +182,7 @@
 
         .doc-meta-table {
             width: auto;
-            font-size: 7pt;
+            font-size: 7.5pt;
             border-collapse: collapse;
             margin-left: auto;
             margin-right: 0;
@@ -226,7 +226,7 @@
 
         .document-body {
             width: 100%;
-            padding-top: 28mm; /* Increased gap between header and customer data */
+            padding-top: 30mm; /* Adjusted gap for slightly larger header text */
             margin: 0;
         }
 
@@ -244,14 +244,14 @@
             border: none;
             border-left: 3px solid var(--primary-blue);
             border-radius: 3px;
-            padding: 5px 10px;
+            padding: 6px 10px;
             min-width: 240px;
             max-width: 100%;
-            font-size: 7.5pt;
+            font-size: 8.5pt; /* Increased font size */
         }
 
         .info-block-title {
-            font-size: 7.5pt;
+            font-size: 8pt;
             font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
@@ -264,7 +264,7 @@
         .meta-label {
             color: var(--text-muted);
             font-weight: 600;
-            font-size: 7.5pt;
+            font-size: 8.5pt;
         }
 
         .content-wrapper {
@@ -288,8 +288,8 @@
             background-color: var(--bg-light);
             color: var(--text-dark);
             text-align: left;
-            padding: 4px 6px;
-            font-size: 7.5pt;
+            padding: 5px 6px;
+            font-size: 8pt;
             text-transform: uppercase;
             font-weight: 700;
             letter-spacing: 0.3px;
@@ -298,14 +298,14 @@
         }
 
         .items-table td {
-            padding: 4px 6px;
+            padding: 5px 6px;
             border-bottom: 1px solid var(--border-color);
-            font-size: 8pt;
+            font-size: 9pt; /* Increased font size */
             font-weight: 400;
         }
 
         .items-table tr:nth-child(even) td { background-color: #ffffff; }
-        .items-table small { font-size: 7pt; }
+        .items-table small { font-size: 7.5pt; }
 
         .notes-totals-table {
             width: 100%;
@@ -321,8 +321,8 @@
         }
 
         .totals-table td {
-            padding: 3px 6px;
-            font-size: 8pt;
+            padding: 4px 6px;
+            font-size: 9pt; /* Increased font size */
             border-bottom: none;
         }
 
@@ -339,10 +339,10 @@
 
         .totals-table .grand-total-row td {
             font-weight: 700;
-            font-size: 9pt;
+            font-size: 10pt;
             color: var(--primary-blue);
             background-color: var(--bg-light);
-            padding: 5px 6px;
+            padding: 6px;
         }
 
         .bottom-section {
@@ -388,7 +388,7 @@
         .sig-line {
             border-top: 1px solid #aaaaaa;
             padding-top: 3px;
-            font-size: 7.5pt;
+            font-size: 8pt;
             color: var(--text-dark);
             line-height: 1.2;
             text-align: center;
@@ -398,7 +398,7 @@
             position: absolute;
             right: 0;
             bottom: 0;
-            font-size: 7.5pt;
+            font-size: 8pt;
             color: #718096;
             background: #ffffff;
             white-space: nowrap;
@@ -511,7 +511,7 @@
             <tr>
                 <td style="width: 60%;" class="valign-top">
                     <div class="customer-card">
-                        <div class="info-block-title">Customer Details</div>
+                        <div class="#">Customer Details</div>
                         <div>
                             <strong>{{ customer.name|default:customer }}</strong><br>
                             {% if customer.address %}
@@ -580,7 +580,7 @@
                                 <div class="info-block-title" style="background: none; padding-left: 0;">
                                     Notes / Terms
                                 </div>
-                                <div style="font-size: 7.5pt; color: #4A5568;">
+                                <div style="font-size: 8pt; color: #4A5568;">
                                     {{ quotation.notes|linebreaksbr }}
                                 </div>
                             {% endif %}
