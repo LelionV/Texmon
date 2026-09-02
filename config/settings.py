@@ -103,24 +103,18 @@ WSGI_APPLICATION = "config.wsgi.application"
 # SQLite for local development; set DATABASE_ENGINE=postgres + the usual
 # PG env vars in production. Kept simple for Phase 1.
 
-if os.environ.get("DATABASE_ENGINE") == "postgres":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("DATABASE_NAME", "logistics_erp"),
-            "USER": os.environ.get("DATABASE_USER", "postgres"),
-            "PASSWORD": os.environ.get("DATABASE_PASSWORD", ""),
-            "HOST": os.environ.get("DATABASE_HOST", "localhost"),
-            "PORT": os.environ.get("DATABASE_PORT", "5432"),
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "texmon",
+        "USER": "texmon_user",
+        "PASSWORD": "Tahapay&17"
+        # "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
+        
+        "HOST": "dpg-da5evbjncjis738n6vv0-a",
+        "PORT": "5432",
     }
-else:
- DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+}
 
 
 # Custom user model - must be set before the first makemigrations/migrate.
